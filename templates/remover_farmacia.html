@@ -1,0 +1,72 @@
+{% extends 'templatesApp/base.html' %}
+
+{% block page_title %}Eliminar Farmacia{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-trash"></i> Eliminar Farmacia</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong><i class="bi bi-exclamation-triangle"></i> ¡Advertencia!</strong> Esta acción no se puede deshacer.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <div class="card mb-3" style="border-left: 4px solid #e74c3c;">
+                    <div class="card-body">
+                        <h6 class="mb-2">{{ farmacia.nombre }}</h6>
+                        <p class="mb-1">
+                            <strong>Teléfono:</strong> {{ farmacia.telefono }}
+                        </p>
+                        <p class="mb-1">
+                            <strong>Email:</strong> {{ farmacia.email }}
+                        </p>
+                        <p class="mb-1">
+                            <strong>Dirección:</strong> {{ farmacia.direccion }}
+                        </p>
+                        <p class="mb-1">
+                            <strong>Horarios:</strong> 
+                            {% if farmacia.horarioapertura and farmacia.horariocierre %}
+                                {{ farmacia.horarioapertura|time:"H:i" }} - {{ farmacia.horariocierre|time:"H:i" }}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </p>
+                        <p class="mb-0">
+                            <strong>Estado:</strong>
+                            {% if farmacia.activa %}
+                                <span class="badge badge-success">Activa</span>
+                            {% else %}
+                                <span class="badge badge-danger">Inactiva</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <p class="text-muted">
+                    <i class="bi bi-info-circle"></i> 
+                    ¿Está completamente seguro que desea eliminar esta farmacia? Se eliminarán todos sus datos incluidos los motoristas asociados.
+                </p>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger btn-lg">
+                            <i class="bi bi-trash"></i> Sí, Eliminar Farmacia
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-3">
+                    <a href="{% url 'listado_farmacia' %}" class="text-decoration-none">
+                        Cancelar y volver
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

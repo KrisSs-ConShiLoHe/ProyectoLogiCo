@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Preferencias{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-sliders"></i> Preferencias de Usuario</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="mb-4">
+            <h6 class="border-bottom pb-2"><i class="bi bi-palette"></i> Tema</h6>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="radio" name="tema" id="tema_claro" value="claro" {% if preferencias.tema == 'claro' %}checked{% endif %}>
+                <label class="form-check-label" for="tema_claro">
+                    Tema Claro
+                </label>
+            </div>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="radio" name="tema" id="tema_oscuro" value="oscuro" {% if preferencias.tema == 'oscuro' %}checked{% endif %}>
+                <label class="form-check-label" for="tema_oscuro">
+                    Tema Oscuro (proximamente)
+                </label>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <h6 class="border-bottom pb-2"><i class="bi bi-bell"></i> Notificaciones</h6>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="notif_email" name="notif_email" {% if preferencias.notif_email %}checked{% endif %}>
+                <label class="form-check-label" for="notif_email">
+                    Notificaciones por email
+                </label>
+            </div>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="notif_sms" name="notif_sms" {% if preferencias.notif_sms %}checked{% endif %}>
+                <label class="form-check-label" for="notif_sms">
+                    Notificaciones por SMS
+                </label>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <h6 class="border-bottom pb-2"><i class="bi bi-globe"></i> Idioma</h6>
+            <select id="idioma" name="idioma" class="form-control">
+                <option value="es" {% if preferencias.idioma == 'es' %}selected{% endif %}>Español</option>
+                <option value="en" {% if preferencias.idioma == 'en' %}selected{% endif %}>English</option>
+                <option value="pt" {% if preferencias.idioma == 'pt' %}selected{% endif %}>Português</option>
+            </select>
+            <small class="form-text text-muted">Por ahora solo disponible en Español</small>
+        </div>
+
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2"><i class="bi bi-bell"></i> Notificaciones</h6>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="notif_email" checked>
+                            <label class="form-check-label" for="notif_email">
+                                Recibir notificaciones por email
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="notif_sistema" checked>
+                            <label class="form-check-label" for="notif_sistema">
+                                Notificaciones del sistema
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2"><i class="bi bi-clock-history"></i> Sesión</h6>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="mantener_sesion">
+                            <label class="form-check-label" for="mantener_sesion">
+                                Mantener sesión activa
+                            </label>
+                        </div>
+                        <small class="form-text text-muted">Se cerrará tu sesión después de 30 minutos de inactividad</small>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Guardar Preferencias
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

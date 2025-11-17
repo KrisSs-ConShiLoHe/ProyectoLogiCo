@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Moto {{ moto.patente }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-bicycle"></i> Información de Moto</h5>
+                    <div>
+                        <a href="{% url 'actualizar_moto' moto.idmoto %}" class="btn btn-warning btn-sm">
+                            <i class="bi bi-pencil"></i> Editar
+                        </a>
+                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="bi bi-trash"></i> Eliminar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Información General -->
+                <h6 class="border-bottom pb-2 mb-3"><i class="bi bi-info-circle"></i> Información General</h6>
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <h6 class="text-muted">Patente</h6>
+                        <p><strong>{{ moto.patente }}</strong></p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted">Año</h6>
+                        <p><strong>{{ moto.anio }}</strong></p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted">Color</h6>
+                        <p><strong>{{ moto.color }}</strong></p>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <h6 class="text-muted">Marca</h6>
+                        <p><strong>{{ moto.marca }}</strong></p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted">Modelo</h6>
+                        <p><strong>{{ moto.modelo }}</strong></p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted">Estado</h6>
+                        <p>
+                            {% if moto.activa %}
+                                <span class="badge badge-success">Activa</span>
+                            {% else %}
+                                <span class="badge badge-danger">Inactiva</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Identificadores -->
+                <h6 class="border-bottom pb-2 mb-3"><i class="bi bi-credit-card"></i> Identificadores</h6>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Número de Chasis</h6>
+                        <p><strong>{{ moto.numerochasis|default:"-" }}</strong></p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Número de Motor</h6>
+                        <p><strong>{{ moto.numeromotor|default:"-" }}</strong></p>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h6 class="text-muted">Propietario</h6>
+                    <p>{{ moto.propietario|default:"-" }}</p>
+                </div>
+
+                <!-- Documentación -->
+                <h6 class="border-bottom pb-2 mb-3"><i class="bi bi-file-earmark"></i> Documentación</h6>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Año Documentación</h6>
+                        <p>{{ moto.aniodocumentacion|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Año Permiso Circulación</h6>
+                        <p>{{ moto.aniopermisocirculacion|default:"-" }}</p>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Seguro Obligatorio</h6>
+                        <p>
+                            {% if moto.seguroobligatorio %}
+                                {{ moto.seguroobligatorio|date:"d/m/Y" }}
+                                {% if moto.seguroobligatorio|date:"Y-m-d" < today|date:"Y-m-d" %}
+                                    <span class="badge badge-danger">Vencido</span>
+                                {% else %}
+                                    <span class="badge badge-success">Vigente</span>
+                                {% endif %}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Revisión Técnica</h6>
+                        <p>
+                            {% if moto.revisiontecnica %}
+                                {{ moto.revisiontecnica|date:"d/m/Y" }}
+                                {% if moto.revisiontecnica|date:"Y-m-d" < today|date:"Y-m-d" %}
+                                    <span class="badge badge-danger">Vencida</span>
+                                {% else %}
+                                    <span class="badge badge-success">Vigente</span>
+                                {% endif %}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Estado de Disponibilidad -->
+                <h6 class="border-bottom pb-2 mb-3"><i class="bi bi-toggle-on"></i> Disponibilidad</h6>
+                <div class="mb-4">
+                    <p>
+                        {% if moto.disponible %}
+                            <span class="badge badge-info">Disponible</span>
+                        {% else %}
+                            <span class="badge badge-warning">Ocupada</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-person-badge"></i> Motorista Asignado</h5>
+            </div>
+            <div class="card-body">
+                {% if moto.idmotorista %}
+                    <div class="mb-3">
+                        <a href="{% url 'detalle_motorista' moto.idmotorista.idmotorista %}" class="text-decoration-none">
+                            <div class="card" style="border-left: 4px solid #3498db;">
+                                <div class="card-body">
+                                    <h6 class="card-title mb-2">{{ moto.idmotorista.nombre }} {{ moto.idmotorista.apellidopaterno }}</h6>
+                                    <small class="text-muted">
+                                        <p class="mb-1"><i class="bi bi-telephone"></i> {{ moto.idmotorista.telefono }}</p>
+                                        <p class="mb-1"><i class="bi bi-envelope"></i> {{ moto.idmotorista.email }}</p>
+                                        <p class="mb-0"><i class="bi bi-building"></i> {{ moto.idmotorista.idfarmacia.nombre }}</p>
+                                    </small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No hay motorista asignado</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-link-45deg"></i> Asignaciones</h5>
+            </div>
+            <div class="card-body">
+                {% if asignaciones %}
+                    <div class="list-group">
+                        {% for asignacion in asignaciones %}
+                            <a href="{% url 'detalle_asignacion' asignacion.idasignacion %}" 
+                               class="list-group-item list-group-item-action">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">{{ asignacion.idmotorista.nombre }} {{ asignacion.idmotorista.apellidopaterno }}</h6>
+                                        <small class="text-muted">{{ asignacion.fechaasignacion|date:"d/m/Y H:i" }}</small>
+                                    </div>
+                                    {% if asignacion.activa %}
+                                        <span class="badge bg-success">Activa</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactiva</span>
+                                    {% endif %}
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No hay asignaciones registradas</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Eliminar -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Eliminar Moto</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro que desea eliminar la moto <strong>{{ moto.patente }}</strong>?</p>
+                <p class="text-warning"><i class="bi bi-exclamation-triangle"></i> Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="POST" action="{% url 'remover_moto' moto.idmoto %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

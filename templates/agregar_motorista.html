@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block page_title %}{% if form.instance.idmotorista %}Editar Motorista{% else %}Nuevo Motorista{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    {% if form.instance.idmotorista %}
+                        <i class="bi bi-pencil-square"></i> Editar Motorista
+                    {% else %}
+                        <i class="bi bi-plus-square"></i> Agregar Nuevo Motorista
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Identificación -->
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2"><i class="bi bi-credit-card"></i> Identificación</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.dni.id_for_label }}" class="form-label">{{ form.dni.label }}</label>
+                                    {{ form.dni }}
+                                    {% if form.dni.errors %}<div class="invalid-feedback d-block">{{ form.dni.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.pasaporte.id_for_label }}" class="form-label">{{ form.pasaporte.label }}</label>
+                                    {{ form.pasaporte }}
+                                    {% if form.pasaporte.errors %}<div class="invalid-feedback d-block">{{ form.pasaporte.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Datos Personales -->
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2"><i class="bi bi-person"></i> Datos Personales</h6>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="{{ form.nombre.id_for_label }}" class="form-label">{{ form.nombre.label }}</label>
+                                    {{ form.nombre }}
+                                    {% if form.nombre.errors %}<div class="invalid-feedback d-block">{{ form.nombre.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.apellidopaterno.id_for_label }}" class="form-label">{{ form.apellidopaterno.label }}</label>
+                                    {{ form.apellidopaterno }}
+                                    {% if form.apellidopaterno.errors %}<div class="invalid-feedback d-block">{{ form.apellidopaterno.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.apellidomaterno.id_for_label }}" class="form-label">{{ form.apellidomaterno.label }}</label>
+                                    {{ form.apellidomaterno }}
+                                    {% if form.apellidomaterno.errors %}<div class="invalid-feedback d-block">{{ form.apellidomaterno.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.fechanacimiento.id_for_label }}" class="form-label">{{ form.fechanacimiento.label }}</label>
+                            {{ form.fechanacimiento }}
+                            {% if form.fechanacimiento.errors %}<div class="invalid-feedback d-block">{{ form.fechanacimiento.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Contacto -->
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2"><i class="bi bi-telephone"></i> Contacto</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.telefono.id_for_label }}" class="form-label">{{ form.telefono.label }}</label>
+                                    {{ form.telefono }}
+                                    {% if form.telefono.errors %}<div class="invalid-feedback d-block">{{ form.telefono.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}<div class="invalid-feedback d-block">{{ form.email.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.direccion.id_for_label }}" class="form-label">{{ form.direccion.label }}</label>
+                            {{ form.direccion }}
+                            {% if form.direccion.errors %}<div class="invalid-feedback d-block">{{ form.direccion.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Licencia de Conducir -->
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2"><i class="bi bi-card-heading"></i> Licencia de Conducir</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.licenciaconducir.id_for_label }}" class="form-label">{{ form.licenciaconducir.label }}</label>
+                                    {{ form.licenciaconducir }}
+                                    {% if form.licenciaconducir.errors %}<div class="invalid-feedback d-block">{{ form.licenciaconducir.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.licenciaarchivo.id_for_label }}" class="form-label">{{ form.licenciaarchivo.label }}</label>
+                                    {{ form.licenciaarchivo }}
+                                    {% if form.licenciaarchivo.errors %}<div class="invalid-feedback d-block">{{ form.licenciaarchivo.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.fechaultimocontrol.id_for_label }}" class="form-label">{{ form.fechaultimocontrol.label }}</label>
+                                    {{ form.fechaultimocontrol }}
+                                    {% if form.fechaultimocontrol.errors %}<div class="invalid-feedback d-block">{{ form.fechaultimocontrol.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.fechaproximocontrol.id_for_label }}" class="form-label">{{ form.fechaproximocontrol.label }}</label>
+                                    {{ form.fechaproximocontrol }}
+                                    {% if form.fechaproximocontrol.errors %}<div class="invalid-feedback d-block">{{ form.fechaproximocontrol.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Empleo -->
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2"><i class="bi bi-briefcase"></i> Empleo</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.fechacontratacion.id_for_label }}" class="form-label">{{ form.fechacontratacion.label }}</label>
+                                    {{ form.fechacontratacion }}
+                                    {% if form.fechacontratacion.errors %}<div class="invalid-feedback d-block">{{ form.fechacontratacion.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.idfarmacia.id_for_label }}" class="form-label">{{ form.idfarmacia.label }}</label>
+                                    {{ form.idfarmacia }}
+                                    {% if form.idfarmacia.errors %}<div class="invalid-feedback d-block">{{ form.idfarmacia.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="{{ form.activo.id_for_label }}" 
+                                   name="{{ form.activo.name }}" {% if form.activo.value %}checked{% endif %}>
+                            <label class="form-check-label" for="{{ form.activo.id_for_label }}">
+                                {{ form.activo.label }}
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Guardar Motorista
+                        </button>
+                        <a href="{% url 'listado_motoristas' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

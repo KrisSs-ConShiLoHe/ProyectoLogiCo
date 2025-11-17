@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Asignación #{{ asignacion.idasignacion }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-link-45deg"></i> Detalles de Asignación #{{ asignacion.idasignacion }}</h5>
+                    <div>
+                        <a href="{% url 'modificar_asignacion' asignacion.idasignacion %}" class="btn btn-warning btn-sm">
+                            <i class="bi bi-pencil"></i> Editar
+                        </a>
+                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            {% if asignacion.activa %}
+                                <i class="bi bi-power"></i> Desactivar
+                            {% else %}
+                                <i class="bi bi-power"></i> Activar
+                            {% endif %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Información de Asignación -->
+                <h6 class="border-bottom pb-2 mb-3"><i class="bi bi-link-45deg"></i> Asignación</h6>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Motorista</h6>
+                        <p>
+                            <a href="{% url 'detalle_motorista' asignacion.idmotorista.idmotorista %}">
+                                <strong>{{ asignacion.idmotorista.nombre }} {{ asignacion.idmotorista.apellidopaterno }}</strong>
+                            </a>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Moto</h6>
+                        <p>
+                            <a href="{% url 'detalle_moto' asignacion.idmoto.idmoto %}">
+                                <strong>{{ asignacion.idmoto.patente }} - {{ asignacion.idmoto.marca }} {{ asignacion.idmoto.modelo }}</strong>
+                            </a>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Período de Asignación -->
+                <h6 class="border-bottom pb-2 mb-3"><i class="bi bi-calendar-event"></i> Período de Asignación</h6>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Fecha de Asignación</h6>
+                        <p>
+                            <strong>{{ asignacion.fechaasignacion|date:"d/m/Y H:i" }}</strong>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Fecha de Desasignación</h6>
+                        <p>
+                            {% if asignacion.fechadesasignacion %}
+                                <strong>{{ asignacion.fechadesasignacion|date:"d/m/Y H:i" }}</strong>
+                            {% else %}
+                                <small class="text-muted">-</small>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Duración -->
+                <div class="mb-4">
+                    <h6 class="text-muted">Duración</h6>
+                    <p>
+                        {% if asignacion.fechaasignacion and asignacion.fechadesasignacion %}
+                            <strong>{{ asignacion.fechadesasignacion|timesince:asignacion.fechaasignacion }}</strong>
+                        {% elif asignacion.fechaasignacion %}
+                            <strong>{{ asignacion.fechaasignacion|timesince }} (en curso)</strong>
+                        {% else %}
+                            <small class="text-muted">-</small>
+                        {% endif %}
+                    </p>
+                </div>
+
+                <!-- Estado -->
+                <h6 class="border-bottom pb-2 mb-3"><i class="bi bi-toggle-on"></i> Estado</h6>
+                <div class="mb-4">
+                    <p>
+                        {% if asignacion.activa %}
+                            <span class="badge badge-success" style="font-size: 1rem; padding: 0.5rem 1rem;">Activa</span>
+                        {% else %}
+                            <span class="badge badge-danger" style="font-size: 1rem; padding: 0.5rem 1rem;">Inactiva</span>
+                        {% endif %}
+                    </p>
+                </div>
+
+                <!-- Observaciones -->
+                {% if asignacion.observaciones %}
+                    <h6 class="border-bottom pb-2 mb-3"><i class="bi bi-chat-left-text"></i> Observaciones</h6>
+                    <div class="mb-4 p-3" style="background-color: #f8f9fa; border-radius: 4px;">
+                        <p class="mb-0">{{ asignacion.observaciones }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Tarjeta Motorista -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-person-badge"></i> Motorista</h5>
+            </div>
+            <div class="card-body">
+                <div class="card" style="border-left: 4px solid #3498db;">
+                    <div class="card-body">
+                        <h6 class="card-title mb-2">{{ asignacion.idmotorista.nombre }} {{ asignacion.idmotorista.apellidopaterno }}</h6>
+                        <small class="text-muted">
+                            <p class="mb-1"><i class="bi bi-credit-card"></i> {{ asignacion.idmotorista.dni }}</p>
+                            <p class="mb-1"><i class="bi bi-telephone"></i> {{ asignacion.idmotorista.telefono }}</p>
+                            <p class="mb-1"><i class="bi bi-envelope"></i> {{ asignacion.idmotorista.email }}</p>
+                            <p class="mb-0"><i class="bi bi-building"></i> {{ asignacion.idmotorista.idfarmacia.nombre }}</p>
+                        </small>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <a href="{% url 'detalle_motorista' asignacion.idmotorista.idmotorista %}" class="btn btn-sm btn-outline-primary w-100">
+                        <i class="bi bi-arrow-right"></i> Ver perfil
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta Moto -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-bicycle"></i> Moto</h5>
+            </div>
+            <div class="card-body">
+                <div class="card" style="border-left: 4px solid #27ae60;">
+                    <div class="card-body">
+                        <h6 class="card-title mb-2">{{ asignacion.idmoto.patente }}</h6>
+                        <small class="text-muted">
+                            <p class="mb-1"><i class="bi bi-tag"></i> {{ asignacion.idmoto.marca }} {{ asignacion.idmoto.modelo }}</p>
+                            <p class="mb-1"><i class="bi bi-palette"></i> {{ asignacion.idmoto.color }}</p>
+                            <p class="mb-1"><i class="bi bi-calendar"></i> {{ asignacion.idmoto.anio }}</p>
+                            <p class="mb-0">
+                                {% if asignacion.idmoto.disponible %}
+                                    <span class="badge bg-info">Disponible</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Ocupada</span>
+                                {% endif %}
+                            </p>
+                        </small>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <a href="{% url 'detalle_moto' asignacion.idmoto.idmoto %}" class="btn btn-sm btn-outline-primary w-100">
+                        <i class="bi bi-arrow-right"></i> Ver perfil
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cambiar Estado -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header {% if asignacion.activa %}bg-warning{% else %}bg-success{% endif %} text-white">
+                <h5 class="modal-title">Cambiar Estado de Asignación</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                {% if asignacion.activa %}
+                    <p>¿Desea <strong>desactivar</strong> esta asignación?</p>
+                    <p class="text-muted"><small>La asignación pasará a estado inactivo, pero se conservará el registro.</small></p>
+                {% else %}
+                    <p>¿Desea <strong>activar</strong> esta asignación?</p>
+                    <p class="text-muted"><small>La asignación pasará a estado activo.</small></p>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="POST" action="{% url 'remover_asignacion' asignacion.idasignacion %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn {% if asignacion.activa %}btn-warning{% else %}btn-success{% endif %}">
+                        {% if asignacion.activa %}Desactivar{% else %}Activar{% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

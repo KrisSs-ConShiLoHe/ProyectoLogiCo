@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Editar Moto{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-pencil-square"></i> Editar Moto
+                    </h5>
+                    <span class="badge bg-info">{{ form.instance.patente }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Información General -->
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2"><i class="bi bi-info-circle"></i> Información General</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.patente.id_for_label }}" class="form-label">{{ form.patente.label }}</label>
+                                    {{ form.patente }}
+                                    {% if form.patente.errors %}<div class="invalid-feedback d-block">{{ form.patente.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.anio.id_for_label }}" class="form-label">{{ form.anio.label }}</label>
+                                    {{ form.anio }}
+                                    {% if form.anio.errors %}<div class="invalid-feedback d-block">{{ form.anio.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.marca.id_for_label }}" class="form-label">{{ form.marca.label }}</label>
+                                    {{ form.marca }}
+                                    {% if form.marca.errors %}<div class="invalid-feedback d-block">{{ form.marca.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.modelo.id_for_label }}" class="form-label">{{ form.modelo.label }}</label>
+                                    {{ form.modelo }}
+                                    {% if form.modelo.errors %}<div class="invalid-feedback d-block">{{ form.modelo.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.color.id_for_label }}" class="form-label">{{ form.color.label }}</label>
+                                    {{ form.color }}
+                                    {% if form.color.errors %}<div class="invalid-feedback d-block">{{ form.color.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Identificadores -->
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2"><i class="bi bi-credit-card"></i> Identificadores</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.numerochasis.id_for_label }}" class="form-label">{{ form.numerochasis.label }}</label>
+                                    {{ form.numerochasis }}
+                                    {% if form.numerochasis.errors %}<div class="invalid-feedback d-block">{{ form.numerochasis.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.numeromotor.id_for_label }}" class="form-label">{{ form.numeromotor.label }}</label>
+                                    {{ form.numeromotor }}
+                                    {% if form.numeromotor.errors %}<div class="invalid-feedback d-block">{{ form.numeromotor.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.propietario.id_for_label }}" class="form-label">{{ form.propietario.label }}</label>
+                            {{ form.propietario }}
+                            {% if form.propietario.errors %}<div class="invalid-feedback d-block">{{ form.propietario.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Documentación -->
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2"><i class="bi bi-file-earmark"></i> Documentación</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.aniodocumentacion.id_for_label }}" class="form-label">{{ form.aniodocumentacion.label }}</label>
+                                    {{ form.aniodocumentacion }}
+                                    {% if form.aniodocumentacion.errors %}<div class="invalid-feedback d-block">{{ form.aniodocumentacion.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.aniopermisocirculacion.id_for_label }}" class="form-label">{{ form.aniopermisocirculacion.label }}</label>
+                                    {{ form.aniopermisocirculacion }}
+                                    {% if form.aniopermisocirculacion.errors %}<div class="invalid-feedback d-block">{{ form.aniopermisocirculacion.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.seguroobligatorio.id_for_label }}" class="form-label">{{ form.seguroobligatorio.label }}</label>
+                                    {{ form.seguroobligatorio }}
+                                    {% if form.seguroobligatorio.errors %}<div class="invalid-feedback d-block">{{ form.seguroobligatorio.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.revisiontecnica.id_for_label }}" class="form-label">{{ form.revisiontecnica.label }}</label>
+                                    {{ form.revisiontecnica }}
+                                    {% if form.revisiontecnica.errors %}<div class="invalid-feedback d-block">{{ form.revisiontecnica.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Asignación -->
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2"><i class="bi bi-link-45deg"></i> Asignación</h6>
+                        <div class="mb-3">
+                            <label for="{{ form.idmotorista.id_for_label }}" class="form-label">{{ form.idmotorista.label }}</label>
+                            {{ form.idmotorista }}
+                            {% if form.idmotorista.errors %}<div class="invalid-feedback d-block">{{ form.idmotorista.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Estado -->
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2"><i class="bi bi-toggle-on"></i> Estado</h6>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="{{ form.disponible.id_for_label }}" 
+                                   name="{{ form.disponible.name }}" {% if form.disponible.value %}checked{% endif %}>
+                            <label class="form-check-label" for="{{ form.disponible.id_for_label }}">
+                                {{ form.disponible.label }}
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="{{ form.activa.id_for_label }}" 
+                                   name="{{ form.activa.name }}" {% if form.activa.value %}checked{% endif %}>
+                            <label class="form-check-label" for="{{ form.activa.id_for_label }}">
+                                {{ form.activa.label }}
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Guardar Cambios
+                        </button>
+                        <a href="{% url 'detalle_moto' form.instance.idmoto %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

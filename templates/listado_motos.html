@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Gestión de Motos{% endblock %}
+{% block page_subtitle %}Administra todas las motos registradas en el sistema{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-bicycle"></i> Lista de Motos</h5>
+                    <a href="{% url 'agregar_moto' %}" class="btn btn-success btn-sm">
+                        <i class="bi bi-plus-circle"></i> Nueva Moto
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Buscador -->
+                <form method="GET" class="mb-4">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <input type="text" name="search" class="form-control" 
+                                   placeholder="Buscar por patente, marca, modelo o chasis..." 
+                                   value="{{ search_query }}">
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search"></i> Buscar
+                            </button>
+                            {% if search_query %}
+                                <a href="{% url 'listado_moto' %}" class="btn btn-secondary">
+                                    <i class="bi bi-x-circle"></i> Limpiar
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Tabla -->
+                {% if page_obj %}
+                    <div class="table-responsive">
+                        <table class="table table-custom table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Patente</th>
+                                    <th>Marca/Modelo</th>
+                                    <th>Color</th>
+                                    <th>Motorista</th>
+                                    <th>Disponibilidad</th>
+                                    <th>Rev. Técnica</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for moto in page_obj %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ moto.patente }}</strong>
+                                        </td>
+                                        <td>
+                                            <small>{{ moto.marca }} {{ moto.modelo }}</small>
+                                        </td>
+                                        <td>{{ moto.color }}</td>
+                                        <td>
+                                            {% if moto.idmotorista %}
+                                                <small>{{ moto.idmotorista.nombre }} {{ moto.idmotorista.apellidopaterno }}</small>
+                                            {% else %}
+                                                <small class="text-muted">-</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if moto.disponible %}
+                                                <span class="badge badge-info">Disponible</span>
+                                            {% else %}
+                                                <span class="badge badge-warning">Ocupada</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if moto.revisiontecnica %}
+                                                {% if moto.revisiontecnica|date:"Y-m-d" < today|date:"Y-m-d" %}
+                                                    <span class="badge badge-danger">Vencida</span>
+                                                {% else %}
+                                                    <span class="badge badge-success">Vigente</span>
+                                                {% endif %}
+                                            {% else %}
+                                                <small class="text-muted">-</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if moto.activa %}
+                                                <span class="badge badge-success">Activa</span>
+                                            {% else %}
+                                                <span class="badge badge-danger">Inactiva</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'detalle_moto' moto.idmoto %}" 
+                                               class="btn btn-sm btn-info" title="Ver detalles">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{% url 'actualizar_moto' moto.idmoto %}" 
+                                               class="btn btn-sm btn-warning" title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-danger" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#deleteModal{{ moto.idmoto }}"
+                                                    title="Eliminar">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Modal Eliminar -->
+                                    <div class="modal fade" id="deleteModal{{ moto.idmoto }}" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-danger text-white">
+                                                    <h5 class="modal-title">Eliminar Moto</h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>¿Está seguro que desea eliminar la moto <strong>{{ moto.patente }}</strong>?</p>
+                                                    <p class="text-warning"><i class="bi bi-exclamation-triangle"></i> Esta acción no se puede deshacer.</p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                    <form method="POST" action="{% url 'remover_moto' moto.idmoto %}" style="display:inline;">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Paginación -->
+                    {% if page_obj.has_other_pages %}
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center mt-4">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}">Primera</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">Anterior</a>
+                                    </li>
+                                {% endif %}
+
+                                <li class="page-item active">
+                                    <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                                </li>
+
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">Siguiente</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}">Última</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <h5>No se encontraron motos</h5>
+                        <p>Intenta con otros términos de búsqueda o crea una nueva moto.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

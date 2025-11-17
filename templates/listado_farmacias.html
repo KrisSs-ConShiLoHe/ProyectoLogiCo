@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Gestión de Farmacias{% endblock %}
+{% block page_subtitle %}Administra todas las farmacias registradas en el sistema{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0"><i class="bi bi-hospital"></i> Lista de Farmacias</h5>
+                    </div>
+                    <a href="{% url 'agregar_farmacia' %}" class="btn btn-success btn-sm">
+                        <i class="bi bi-plus-circle"></i> Nueva Farmacia
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Buscador -->
+                <form method="GET" class="mb-4" id="searchForm">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <input type="text" name="search" class="form-control" 
+                                   placeholder="Buscar por nombre, dirección, teléfono o email..." 
+                                   value="{{ search_query }}">
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search"></i> Buscar
+                            </button>
+                            {% if search_query %}
+                                <a href="{% url 'listado_farmacia' %}" class="btn btn-secondary">
+                                    <i class="bi bi-x-circle"></i> Limpiar
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Tabla -->
+                {% if page_obj %}
+                    <div class="table-responsive">
+                        <table class="table table-custom table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Dirección</th>
+                                    <th>Teléfono</th>
+                                    <th>Email</th>
+                                    <th>Horarios</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for farmacia in page_obj %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ farmacia.nombre }}</strong>
+                                        </td>
+                                        <td>{{ farmacia.direccion|truncatewords:5 }}</td>
+                                        <td>{{ farmacia.telefono }}</td>
+                                        <td>{{ farmacia.email|truncatewords:2 }}</td>
+                                        <td>
+                                            {% if farmacia.horarioapertura and farmacia.horariocierre %}
+                                                <small class="text-muted">
+                                                    {{ farmacia.horarioapertura|time:"H:i" }} - {{ farmacia.horariocierre|time:"H:i" }}
+                                                </small>
+                                            {% else %}
+                                                <small class="text-muted">-</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if farmacia.activa %}
+                                                <span class="badge badge-success">Activa</span>
+                                            {% else %}
+                                                <span class="badge badge-danger">Inactiva</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'detalle_farmacia' farmacia.idfarmacia %}" 
+                                               class="btn btn-sm btn-info" title="Ver detalles">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{% url 'actualizar_farmacia' farmacia.idfarmacia %}" 
+                                               class="btn btn-sm btn-warning" title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-danger" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#deleteModal{{ farmacia.idfarmacia }}"
+                                                    title="Eliminar">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Modal Eliminar -->
+                                    <div class="modal fade" id="deleteModal{{ farmacia.idfarmacia }}" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-danger text-white">
+                                                    <h5 class="modal-title">Eliminar Farmacia</h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>¿Está seguro que desea eliminar la farmacia <strong>{{ farmacia.nombre }}</strong>?</p>
+                                                    <p class="text-warning"><i class="bi bi-exclamation-triangle"></i> Esta acción no se puede deshacer.</p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                    <form method="POST" action="{% url 'remover_farmacia' farmacia.idfarmacia %}" style="display:inline;">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Paginación -->
+                    {% if page_obj.has_other_pages %}
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center mt-4">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}">Primera</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">Anterior</a>
+                                    </li>
+                                {% endif %}
+
+                                <li class="page-item active">
+                                    <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                                </li>
+
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">Siguiente</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}">Última</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <h5>No se encontraron farmacias</h5>
+                        <p>Intenta con otros términos de búsqueda o crea una nueva farmacia.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

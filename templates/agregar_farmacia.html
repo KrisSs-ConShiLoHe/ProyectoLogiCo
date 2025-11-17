@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block page_title %}{% if form.instance.idfarmacia %}Editar Farmacia{% else %}Nueva Farmacia{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    {% if form.instance.idfarmacia %}
+                        <i class="bi bi-pencil-square"></i> Editar Farmacia: {{ form.instance.nombre }}
+                    {% else %}
+                        <i class="bi bi-plus-square"></i> Agregar Nueva Farmacia
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label for="{{ form.nombre.id_for_label }}" class="form-label">{{ form.nombre.label }}</label>
+                                {{ form.nombre }}
+                                {% if form.nombre.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.nombre.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.telefono.id_for_label }}" class="form-label">{{ form.telefono.label }}</label>
+                                {{ form.telefono }}
+                                {% if form.telefono.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.telefono.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.email.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label for="{{ form.direccion.id_for_label }}" class="form-label">{{ form.direccion.label }}</label>
+                                {{ form.direccion }}
+                                {% if form.direccion.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.direccion.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.horarioapertura.id_for_label }}" class="form-label">{{ form.horarioapertura.label }}</label>
+                                {{ form.horarioapertura }}
+                                {% if form.horarioapertura.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.horarioapertura.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.horariocierre.id_for_label }}" class="form-label">{{ form.horariocierre.label }}</label>
+                                {{ form.horariocierre }}
+                                {% if form.horariocierre.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.horariocierre.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.latitud.id_for_label }}" class="form-label">{{ form.latitud.label }}</label>
+                                {{ form.latitud }}
+                                {% if form.latitud.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.latitud.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.longitud.id_for_label }}" class="form-label">{{ form.longitud.label }}</label>
+                                {{ form.longitud }}
+                                {% if form.longitud.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.longitud.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="{{ form.activa.id_for_label }}" 
+                                       name="{{ form.activa.name }}" {% if form.activa.value %}checked{% endif %}>
+                                <label class="form-check-label" for="{{ form.activa.id_for_label }}">
+                                    {{ form.activa.label }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Guardar Farmacia
+                        </button>
+                        <a href="{% url 'listado_farmacia' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
