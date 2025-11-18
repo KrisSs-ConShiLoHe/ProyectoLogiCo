@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard General - LogiCo{% endblock %}
+
+{% block content %}
+<h1 class="page-title"><i class="bi bi-graph-up"></i> Dashboard General</h1>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h3>{{ total_despachos }}</h3>
+                <p class="card-text mb-0">Total Despachos</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <h3>{{ despachos_pendientes }}</h3>
+                <p class="card-text mb-0">Pendientes</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h3>{{ despachos_en_ruta }}</h3>
+                <p class="card-text mb-0">En Ruta</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h3>{{ despachos_entregados }}</h3>
+                <p class="card-text mb-0">Entregados</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-person-badge"></i> Motoristas</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Activos:</strong> {{ motoristas_activos }} / {{ motoristas_total }}</p>
+                <div class="progress">
+                    <div class="progress-bar bg-success" style="width: {% widthratio motoristas_activos motoristas_total 100 %}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-bicycle"></i> Motos</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Disponibles:</strong> {{ motos_disponibles }} / {{ motos_total }}</p>
+                <div class="progress">
+                    <div class="progress-bar" style="width: {% widthratio motos_disponibles motos_total 100 %}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h4>{{ despachos_recientes }}</h4>
+                <p class="card-text text-muted">Últimos 7 días</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h4>{{ despachos_incidencias }}</h4>
+                <p class="card-text text-muted">Con Incidencias</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h4>{{ farmacias_total }}</h4>
+                <p class="card-text text-muted">Farmacias</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h4>{{ tiempo_promedio }} min</h4>
+                <p class="card-text text-muted">Tiempo Promedio</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

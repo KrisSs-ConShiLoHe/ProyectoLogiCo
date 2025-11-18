@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-#m460&cotob)x@t(@nerf05(q_m$=4einmvd*$od+l5l4$3f)q
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['192.168.1.97','127.0.0.1','localhost']
 
 
 # Application definition
@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     'App'
 ]
 
@@ -51,6 +52,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'App.middleware.session_activity.SessionActivityMiddleware',
 ]
 
 ROOT_URLCONF = 'Proyecto.urls'
@@ -70,6 +72,21 @@ TEMPLATES = [
     },
 ]
 
+
+# Django REST Framework configuration
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 25,
+}
+
+
 WSGI_APPLICATION = 'Proyecto.wsgi.application'
 
 
@@ -79,7 +96,7 @@ WSGI_APPLICATION = 'Proyecto.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'dbproyectologico2',
+        'NAME': 'dbproyectologicodiscopro',
         'USER': 'root',
         'PASSWORD': '12345',
         'HOST': 'localhost',
@@ -112,7 +129,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Santiago'
 
 USE_I18N = True
 
@@ -136,14 +153,63 @@ MEDIA_URL = '/media/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Redirección después del login
+# URL de login
 LOGIN_URL = '/login/'
 
-# Redirección después del login exitoso
+# Redirección después del login
 LOGIN_REDIRECT_URL = 'home'
 
-# Configuración de idioma y zona horaria
-LANGUAGE_CODE = 'es-es'  # Cambiar de 'en-us' a esto
-TIME_ZONE = 'America/Santiago'  # O tu zona horaria
-USE_I18N = True
-USE_L10N = True
+# Redirección después del logout
+LOGOUT_REDIRECT_URL = 'home'
+
+# Configuración de Sesiones
+
+# Motor de sesiones (base de datos es más seguro que archivos)
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+# Duración de la sesión (en segundos)
+# 2 horas = 7200 segundos
+# 24 horas = 86400 segundos
+# 7 días = 604800 segundos
+SESSION_COOKIE_AGE = 86400  # 24 horas
+
+# Expirar sesión al cerrar el navegador
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # False = mantiene la sesión según SESSION_COOKIE_AGE
+
+# Guardar sesión en cada request (False = solo si se modifica)
+SESSION_SAVE_EVERY_REQUEST = False
+
+# Nombre de la cookie de sesión
+SESSION_COOKIE_NAME = 'logico_sessionid'
+
+# Seguridad de cookies
+SESSION_COOKIE_HTTPONLY = True  # No accesible desde JavaScript
+SESSION_COOKIE_SECURE = False  # True solo en HTTPS (cambiar a True en producción)
+SESSION_COOKIE_SAMESITE = 'Lax'  # Protección CSRF
+
+# Serialización de sesiones
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
+
+# Configuración de Seguridad
+
+# Protección CSRF
+CSRF_COOKIE_HTTPONLY = False  # Debe ser False para que JavaScript pueda leerla
+CSRF_COOKIE_SECURE = False  # True en producción con HTTPS
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_NAME = 'logico_csrftoken'
+
+# Headers de seguridad
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+
+# En producción, activar estos:
+# SECURE_SSL_REDIRECT = True
+# SESSION_COOKIE_SECURE = True
+# CSRF_COOKIE_SECURE = True
+# SECURE_HSTS_SECONDS = 31536000
+# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+# SECURE_HSTS_PRELOAD = True
+
+# Modelo de usuario personalizado
+AUTH_USER_MODEL = 'App.User'

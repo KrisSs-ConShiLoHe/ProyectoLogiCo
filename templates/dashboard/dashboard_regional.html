@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard Regional - LogiCo{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Dashboard Regional</h1>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="card p-3">
+      <h5>Despachos por Región</h5>
+      <ul class="list-group list-group-flush">
+        {% for r in despachos_por_region %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          {{ r.region|default:'(Sin región)' }}
+          <span class="badge bg-primary">{{ r.total }}</span>
+        </li>
+        {% empty %}
+        <li class="list-group-item text-muted">No hay datos.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card p-3">
+      <h5>Despachos por Estado</h5>
+      <ul class="list-group list-group-flush">
+        {% for e in despachos_por_estado %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          {{ e.estado }}
+          <span class="badge bg-secondary">{{ e.total }}</span>
+        </li>
+        {% empty %}
+        <li class="list-group-item text-muted">No hay datos.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-3 p-3">
+  <h5>Top Motoristas (por despachos)</h5>
+  <table class="table table-sm">
+    <thead>
+      <tr>
+        <th>Motorista</th>
+        <th>Total Despachos</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in motoristas_rendimiento %}
+      <tr>
+        <td>{{ m.usuario.get_full_name }}</td>
+        <td>{{ m.total_despachos }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="2" class="text-muted">No hay datos.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

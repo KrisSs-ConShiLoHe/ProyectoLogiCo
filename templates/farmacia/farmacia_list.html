@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}Farmacias - LogiCo{% endblock %}
+
+{% block content %}
+<div class="page-title d-flex justify-content-between align-items-center">
+    <h1><i class="bi bi-hospital"></i> Farmacias</h1>
+    {% if puede_editar %}
+    <a href="{% url 'farmacia_crear' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Nueva Farmacia
+    </a>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Región</th>
+                    <th>Comuna</th>
+                    <th>Dirección</th>
+                    <th>Código Externo</th>
+                    {% if puede_editar %}
+                    <th>Acciones</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for farmacia in page_obj %}
+                <tr>
+                    <td>{{ farmacia.nombre }}</td>
+                    <td>{{ farmacia.region }}</td>
+                    <td>{{ farmacia.comuna }}</td>
+                    <td>{{ farmacia.direccion }}</td>
+                    <td><span class="badge bg-secondary">{{ farmacia.codigo_externo }}</span></td>
+                    {% if puede_editar %}
+                    <td>
+                        <a href="{% url 'farmacia_editar' farmacia.pk %}" class="btn btn-sm btn-warning">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a href="{% url 'farmacia_eliminar' farmacia.pk %}" class="btn btn-sm btn-danger">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="{% if puede_editar %}7{% else %}6{% endif %}" class="text-center text-muted">
+                        No hay farmacias registradas
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Paginación -->
+{% if is_paginated %}
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page=1">Primera</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+        </li>
+        {% endif %}
+
+        <li class="page-item active">
+            <span class="page-link">{{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+        </li>
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Última</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

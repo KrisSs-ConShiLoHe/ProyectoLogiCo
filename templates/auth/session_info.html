@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Información de Sesión - LogiCo{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">Información de tu sesión</h2>
+    <ul class="list-group">
+        <li class="list-group-item"><strong>Clave de sesión:</strong> {{ session_key }}</li>
+        <li class="list-group-item"><strong>Inicio de sesión:</strong> {{ login_timestamp }}</li>
+        <li class="list-group-item"><strong>Última actividad:</strong> {{ ultima_actividad }}</li>
+        <li class="list-group-item"><strong>Duración de sesión:</strong> {{ tiempo_sesion }}</li>
+        <li class="list-group-item"><strong>Tiempo inactivo:</strong> {{ tiempo_inactivo }}</li>
+        <li class="list-group-item"><strong>Expira en:</strong> {{ expira_en }}</li>
+    </ul>
+</div>
+
+{% block extra_js %}   
+<script>
+    // Renovar sesión
+    document.getElementById('renovar-sesion').addEventListener('click', function() {
+        fetch('{% url "renovar_sesion" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('✅ Sesión renovada correctamente');
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('❌ Error al renovar sesión');
+        });
+    });
+
+    // Monitor en tiempo real
+    function verificarEstado() {
+        fetch('{% url "session_status" %}')
+        .then(response => response.json())
+        .then(data => {
+            const minutos = Math.floor(data.tiempo_restante / 60);
+            const segundos = data.tiempo_restante % 60;
+            
+            let alertClass = 'alert-success';
+            if (data.tiempo_restante < 300) alertClass = 'alert-warning';
+            if (data.tiempo_restante < 120) alertClass = 'alert-danger';
+            
+            document.getElementById('status-monitor').innerHTML = `
+                <div class="alert ${alertClass}">
+                    <h6><i class="bi bi-check-circle"></i> Sesión Activa</h6>
+                    <p class="mb-0">Tiempo restante: <strong>${minutos}m ${segundos}s</strong></p>
+                </div>
+            `;
+        })
+        .catch(error => {
+            document.getElementById('status-monitor').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-x-circle"></i> Error al verificar estado
+                </div>
+            `;
+        });
+    }
+
+    // Verificar cada 5 segundos
+    verificarEstado();
+    setInterval(verificarEstado, 5000);
+</script>
+</script>
+{% endblock %}
+{% endblock %}

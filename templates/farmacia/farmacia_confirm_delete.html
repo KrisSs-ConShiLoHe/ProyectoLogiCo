@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar Farmacia - LogiCo{% endblock %}
+
+{% block content %}
+<h1 class="page-title"><i class="bi bi-trash"></i> Eliminar Farmacia</h1>
+
+<div class="card border-danger">
+    <div class="card-body">
+        <div class="alert alert-danger">
+            <strong>Advertencia:</strong> Esta acción no se puede deshacer.
+        </div>
+        
+        <p>¿Estás seguro de que deseas eliminar la siguiente farmacia?</p>
+        
+        <div class="alert alert-light">
+            <strong>Nombre:</strong> {{ farmacia.nombre }}<br>
+            <strong>Región:</strong> {{ farmacia.region }}<br>
+            <strong>Comuna:</strong> {{ farmacia.comuna }}<br>
+            <strong>Dirección:</strong> {{ farmacia.direccion }}
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-check-circle"></i> Sí, eliminar
+                </button>
+                <a href="{% url 'farmacia_listar' %}" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

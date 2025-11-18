@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}{{ titulo|default:'Moto' }} - LogiCo{% endblock %}
+
+{% block content %}
+<div class="card p-4">
+  <h2>{{ titulo|default:'Moto' }}</h2>
+  <form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+    <div class="mb-3">
+      <label class="form-label">{{ field.label }}</label>
+      {{ field }}
+      {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
+    </div>
+    {% endfor %}
+    <button class="btn btn-primary" type="submit">Guardar</button>
+    <a class="btn btn-secondary" href="{% url 'moto_listar' %}">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

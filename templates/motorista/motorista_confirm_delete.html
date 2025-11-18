@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Eliminar Motorista - LogiCo{% endblock %}
+
+{% block content %}
+<div class="card p-4">
+  <h3>Eliminar Motorista</h3>
+  <p>¿Estás seguro que deseas eliminar al motorista <strong>{{ motorista.usuario.get_full_name }} ({{ motorista.rut }})</strong>?</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Eliminar</button>
+    <a class="btn btn-secondary" href="{% url 'motorista_listar' %}">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

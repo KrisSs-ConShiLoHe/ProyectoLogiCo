@@ -1,127 +1,134 @@
 {% extends 'base.html' %}
 
-{% block page_title %}Dashboard - LogiCo{% endblock %}
-{% block page_subtitle %}Bienvenido al Sistema de Gestión de Despachos{% endblock %}
+{% block title %}Inicio - LogiCo{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-3 mb-3">
-        <div class="card stat-card">
-            <div class="stat-number">{{ total_farmacias }}</div>
-            <div class="stat-label">Farmacias Activas</div>
-            <small class="text-muted"><i class="bi bi-hospital"></i> Sistema</small>
-        </div>
-    </div>
+<h1 class="page-title">
+    <i class="bi bi-house"></i> Bienvenido
+</h1>
 
-    <div class="col-md-3 mb-3">
-        <div class="card stat-card success">
-            <div class="stat-number">{{ total_motoristas }}</div>
-            <div class="stat-label">Motoristas Activos</div>
-            <small class="text-muted"><i class="bi bi-person-badge"></i> Personal</small>
-        </div>
-    </div>
-
-    <div class="col-md-3 mb-3">
-        <div class="card stat-card danger">
-            <div class="stat-number">{{ total_motos }}</div>
-            <div class="stat-label">Motos Disponibles</div>
-            <small class="text-muted"><i class="bi bi-bicycle"></i> Flota</small>
-        </div>
-    </div>
-
-    <div class="col-md-3 mb-3">
-        <div class="card stat-card warning">
-            <div class="stat-number">{{ asignaciones_activas }}</div>
-            <div class="stat-label">Asignaciones Activas</div>
-            <small class="text-muted"><i class="bi bi-link-45deg"></i> Operativo</small>
-        </div>
-    </div>
-</div>
-
+{% if user.is_authenticated %}
 <div class="row">
     <div class="col-md-8">
         <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-speedometer2"></i> Acceso Rápido</h5>
-            </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <a href="{% url 'listado_farmacias' %}" class="btn btn-outline-primary w-100 py-3">
-                            <i class="bi bi-hospital" style="font-size: 1.5rem;"></i>
-                            <div>Gestionar Farmacias</div>
-                            <small class="text-muted">Administra todas las farmacias</small>
-                        </a>
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-                        <a href="{% url 'listado_motoristas' %}" class="btn btn-outline-success w-100 py-3">
-                            <i class="bi bi-person-badge" style="font-size: 1.5rem;"></i>
-                            <div>Gestionar Motoristas</div>
-                            <small class="text-muted">Administra el personal de despacho</small>
-                        </a>
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-                        <a href="{% url 'listado_motos' %}" class="btn btn-outline-danger w-100 py-3">
-                            <i class="bi bi-bicycle" style="font-size: 1.5rem;"></i>
-                            <div>Gestionar Motos</div>
-                            <small class="text-muted">Administra la flota de vehículos</small>
-                        </a>
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-                        <a href="{% url 'listado_asignaciones' %}" class="btn btn-outline-warning w-100 py-3">
-                            <i class="bi bi-link-45deg" style="font-size: 1.5rem;"></i>
-                            <div>Gestionar Asignaciones</div>
-                            <small class="text-muted">Asigna motoristas a motos</small>
-                        </a>
-                    </div>
+                <h5 class="card-title">Hola, {{ user.get_full_name|default:user.username }}</h5>
+                <p class="card-text">
+                    Bienvenido al sistema de gestión logística LogiCo.
+                </p>
+                <p class="text-muted small">
+                    <strong>Rol:</strong> <span class="badge bg-primary">{{ user.rol }}</span>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h6 class="card-title">Acceso Rápido</h6>
+                <div class="d-flex flex-column gap-2">
+                    {% if user.rol in "ADMINISTRADOR|SUPERVISOR|GERENTE" %}
+                    <a href="{% url 'dashboard_general' %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-graph-up"></i> Dashboard
+                    </a>
+                    <a href="{% url 'despacho_listar' %}" class="btn btn-info btn-sm">
+                        <i class="bi bi-box-seam"></i> Despachos
+                    </a>
+                    {% endif %}
+                    
+                    <a href="{% url 'cambiar_contrasena' %}" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-key"></i> Cambiar Contraseña
+                    </a>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <div class="col-md-4">
-        <div class="card mb-3">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Información del Sistema</h5>
-            </div>
+<!-- Resumen según rol -->
+{% if user.rol == 'ADMINISTRADOR' %}
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-center">
             <div class="card-body">
-                <ul class="list-unstyled">
-                    <li class="mb-3">
-                        <strong>Proyecto:</strong><br>
-                        <small class="text-muted">LogiCo - Sistema de Gestión de Despachos</small>
-                    </li>
-                    <li class="mb-3">
-                        <strong>Versión:</strong><br>
-                        <small class="text-muted">1.0.0</small>
-                    </li>
-                    <li class="mb-3">
-                        <strong>Empresa:</strong><br>
-                        <small class="text-muted">Discopro Ltda.</small>
-                    </li>
-                    <li class="mb-3">
-                        <strong>Función:</strong><br>
-                        <small class="text-muted">Automatizar procesos de distribución a domicilio</small>
-                    </li>
-                </ul>
+                <h3 style="color: #0d47a1;">
+                    <i class="bi bi-hospital"></i>
+                </h3>
+                <p class="card-text">Farmacias</p>
+                <a href="{% url 'farmacia_listar' %}" class="btn btn-sm btn-outline-primary">Ver</a>
             </div>
         </div>
-
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-bulb"></i> Consejos</h5>
-            </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-center">
             <div class="card-body">
-                <ul class="list-unstyled small text-muted">
-                    <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Mantén actualizada la información de motoristas</li>
-                    <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Revisa las fechas de licencia y revisión técnica</li>
-                    <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Crea asignaciones apropiadas para optimizar rutas</li>
-                    <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Usa los filtros para buscar información rápidamente</li>
-                </ul>
+                <h3 style="color: #0d47a1;">
+                    <i class="bi bi-person-badge"></i>
+                </h3>
+                <p class="card-text">Motoristas</p>
+                <a href="{% url 'motorista_listar' %}" class="btn btn-sm btn-outline-primary">Ver</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 style="color: #0d47a1;">
+                    <i class="bi bi-bicycle"></i>
+                </h3>
+                <p class="card-text">Motos</p>
+                <a href="{% url 'moto_listar' %}" class="btn btn-sm btn-outline-primary">Ver</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 style="color: #0d47a1;">
+                    <i class="bi bi-box-seam"></i>
+                </h3>
+                <p class="card-text">Despachos</p>
+                <a href="{% url 'despacho_listar' %}" class="btn btn-sm btn-outline-primary">Ver</a>
             </div>
         </div>
     </div>
 </div>
+{% elif user.rol == 'MOTORISTA' %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-box-seam"></i> Mis Despachos</h5>
+            </div>
+            <div class="card-body">
+                <p>Accede a tus despachos asignados y actualiza su estado.</p>
+                <a href="{% url 'despacho_listar' %}" class="btn btn-primary">
+                    <i class="bi bi-box-seam"></i> Ver Despachos
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body text-center">
+                <p class="card-text">
+                    Debes iniciar sesión para acceder al sistema.
+                </p>
+                <a href="{% url 'login' %}" class="btn btn-primary">
+                    <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

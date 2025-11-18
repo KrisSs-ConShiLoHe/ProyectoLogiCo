@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Motos - LogiCo{% endblock %}
+
+{% block content %}
+<div class="page-title d-flex justify-content-between align-items-center">
+    <h1><i class="bi bi-bicycle"></i> Motos</h1>
+    {% if puede_editar %}
+    <a href="{% url 'moto_crear' %}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Nueva Moto</a>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Patente</th>
+                    <th>Marca</th>
+                    <th>Modelo</th>
+                    <th>Disponible</th>
+                    {% if puede_editar %}<th>Acciones</th>{% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for moto in page_obj %}
+                <tr>
+                    <td>{{ moto.patente }}</td>
+                    <td>{{ moto.marca }}</td>
+                    <td>{{ moto.modelo }}</td>
+                    <td>{% if moto.disponible %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+                    {% if puede_editar %}
+                    <td>
+                        <a href="{% url 'moto_editar' moto.pk %}" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
+                        <a href="{% url 'moto_eliminar' moto.pk %}" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center">No hay motos registradas.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if is_paginated %}
+<nav aria-label="pagination">
+  <ul class="pagination mt-3">
+    {% if page_obj.has_previous %}
+    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+    {% endif %}
+    <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+    {% if page_obj.has_next %}
+    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}
+{% endblock %}
