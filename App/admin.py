@@ -90,4 +90,3 @@ class DespachoAdmin(admin.ModelAdmin):
 
     def tiempo_entrega_minutos(self, obj):
         return obj.tiempo_entrega_minutos
-
