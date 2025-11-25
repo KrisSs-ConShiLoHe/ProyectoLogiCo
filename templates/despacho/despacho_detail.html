@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle Despacho - LogiCo{% endblock %}
+
+{% block content %}
+<h1 class="page-title"><i class="bi bi-box-seam"></i> Detalle del Despacho</h1>
+
+<div class="card mb-3">
+    <div class="row g-0">
+        {% if despacho.imagen %}
+        <div class="col-md-4 d-flex align-items-center justify-content-center">
+            <a>-----------------------------------------------------------------------------------------</a>
+            <br>
+            <img src="{{ despacho.imagen.url }}" class="img-fluid rounded" alt="Foto Despacho" style="max-width:220px;">
+            <br>
+            <a>-----------------------------------------------------------------------------------------</a>
+        </div>
+        {% endif %}
+        <div class="col-md-{{ despacho.imagen|yesno:"8,12" }}">
+            <div class="card-body">
+                <h4 class="card-title mb-2">Despacho {{ despacho.identificador_unico }}</h4>
+                <ul class="list-group list-group-flush mb-3">
+                    <li class="list-group-item"><strong>Farmacia origen:</strong> {{ despacho.farmacia_origen }}</li>
+                    <li class="list-group-item"><strong>Motorista asignado:</strong> {{ despacho.motorista_asignado }}</li>
+                    <li class="list-group-item"><strong>Dirección entrega:</strong> {{ despacho.direccion_entrega }}</li>
+                    <li class="list-group-item"><strong>Estado:</strong> <span class="badge bg-info">{{ despacho.get_estado_display }}</span></li>
+                    <li class="list-group-item"><strong>Tipo movimiento:</strong> <span class="badge bg-secondary">{{ despacho.get_tipo_movimiento_display }}</span></li>
+                    <li class="list-group-item"><strong>Fecha y hora de toma:</strong> {{ despacho.fecha_hora_toma_pedido }}</li>
+                    <li class="list-group-item"><strong>Fecha y hora salida:</strong> {{ despacho.fecha_hora_salida_farmacia }}</li>
+                    <li class="list-group-item"><strong>Fecha estimada llegada:</strong> {{ despacho.fecha_hora_estimada_llegada }}</li>
+                </ul>
+
+                <!-- Productos del pedido -->
+                {% if despacho.productos.exists and despacho.tipo_movimiento == 'DIRECTO' %}
+                    <h5>Productos</h5>
+                    <ul class="list-group list-group-flush mb-3">
+                        {% for prod in despacho.productos.all %}
+                        <li class="list-group-item"><strong>Código de Producto:</strong>{{ prod.codigo_producto }}</li>
+                        <li class="list-group-item"><strong>Nombre del Producto:</strong>{{ prod.nombre_producto }}</li>
+                        <li class="list-group-item"><strong>Cantidad del Producto:</strong>{{ prod.cantidad }}</li>
+                        <li class="list-group-item"><strong>Número de Lote:</strong>{{ prod.numero_lote }}</li>
+                        <li class="list-group-item"><strong>Número de Serie:</strong>{{ prod.numero_serie }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+
+                <!-- Detalles según tipo de movimiento -->
+                {% if despacho.tipo_movimiento == 'CON_RECETA' %}
+                    <h5>Datos de receta</h5>
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item"><strong>N° Receta:</strong> {{ despacho.numero_receta }}</li>
+                        <li class="list-group-item"><strong>Fecha emisión:</strong> {{ despacho.fecha_emision_receta }}</li>
+                        <li class="list-group-item"><strong>Médico:</strong> {{ despacho.medico_prescribiente }}</li>
+                        <li class="list-group-item"><strong>Paciente:</strong> {{ despacho.paciente_nombre }} ({{ despacho.paciente_edad }})</li>
+                    </ul>
+                {% endif %}
+                {% if despacho.tipo_movimiento == 'CON_TRASLADO' %}
+                    <h5>Tipo establecimiento</h5>
+                    <ul class="list-group list-group-flush mb-3"></ul>
+                        <li class="list-group-item"><strong>Tipo de Establecimiento para el Traslado:</strong> {{ despacho.tipo_establecimiento_traslado }}</li>
+                    </ul>
+                {% endif %}
+
+                {% if despacho.tipo_movimiento == 'REENVIO' %}
+                    <h5>Motivo Reenvío</h5>
+                    <ul class="list-group list-group-flush mb-3"></ul>
+                        <li class="list-group-item"><strong>Motivo del Reenvío:</strong> {{ despacho.motivo_reenvio }}</li>
+                    </ul>
+                {% endif %}
+
+                <!-- Incidencia -->
+                {% if despacho.estado == 'INCIDENCIA' %}
+                    <h5><i class="bi bi-exclamation-circle"></i> Motivo de Incidencia</h5>
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item"><strong>Motivo de Incidencia:</strong> {{ despacho.incidencia_motivo }}</li>
+                        <li class="list-group-item"><strong>Fecha de Incidencia:</strong> <span class="text-muted small"></span>{{ despacho.incidencia_fecha_hora }}</span></li>
+                    </ul>
+                {% endif %}
+
+                <div class="d-flex gap-2 mt-3">
+                    {% if puede_editar %}
+                    <a href="{% url 'despacho_editar' despacho.pk %}" class="btn btn-warning">
+                        <i class="bi bi-pencil"></i> Editar
+                    </a>
+                    <a href="{% url 'despacho_eliminar' despacho.pk %}" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Eliminar
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'despacho_listar' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Volver al listado
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

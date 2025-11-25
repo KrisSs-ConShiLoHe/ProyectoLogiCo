@@ -7,15 +7,21 @@ from django.http import HttpResponse
 from django.contrib import messages
 from django.db.models import Count, Q
 from django.utils import timezone
-from datetime import timedelta
+from datetime import timedelta, datetime
 import csv
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
-from ..models import Despacho, Motorista, Farmacia, Moto, AsignacionMoto, AsignacionFarmacia
+from ..models import Despacho, Motorista, Farmacia, Moto, AsignacionMoto, AsignacionFarmacia, ReportDownloadHistory
 from ..decorators import RolRequiredMixin, LoginRequiredMixin, GerenteOnlyMixin
+from datetime import datetime
+import dateparser
+parse_date = dateparser.parse('2015, Ago 15, 1:08 pm')
+
+
+
 
 
 # ============================================
@@ -31,7 +37,7 @@ class DashboardGeneralView(LoginRequiredMixin, View):
 
     def get(self, request):
         # Verificar roles permitidos
-        if request.user.rol not in ['ADMINISTRADOR', 'SUPERVISOR', 'GERENTE']:
+        if request.user.rol not in ['ADMINISTRADOR', 'GERENTE']:
             messages.error(request, 'No tienes acceso al dashboard general.')
             return redirect('home')
         
@@ -51,7 +57,7 @@ class DashboardGeneralView(LoginRequiredMixin, View):
         motoristas_total = Motorista.objects.count()
         
         # Motos disponibles
-        motos_disponibles = Moto.objects.filter(disponible=True).count()
+        motos_disponibles = Moto.objects.filter(estado='OPERATIVO').count()
         motos_total = Moto.objects.count()
         
         # Farmacias
@@ -60,13 +66,13 @@ class DashboardGeneralView(LoginRequiredMixin, View):
         # Tiempo promedio de entrega (en minutos)
         despachos_entregados_obj = Despacho.objects.filter(
             estado='ENTREGADO',
-            fecha_hora_entrega__isnull=False,
+            fecha_hora_estimada_llegada__isnull=False,
             fecha_hora_despacho__isnull=False
         )
         
         if despachos_entregados_obj.exists():
             total_minutos = sum(
-                int((d.fecha_hora_entrega - d.fecha_hora_despacho).total_seconds() / 60)
+                int((d.fecha_hora_estimada_llegada - d.fecha_hora_despacho).total_seconds() / 60)
                 for d in despachos_entregados_obj
             )
             tiempo_promedio = total_minutos // len(despachos_entregados_obj)
@@ -97,7 +103,7 @@ class DashboardRegionalView(RolRequiredMixin, View):
     Métricas por sucursal o región.
     """
     template_name = 'dashboard/dashboard_regional.html'
-    roles_permitidos = ['GERENTE', 'SUPERVISOR']
+    roles_permitidos = ['ADMINISTRADOR', 'GERENTE', 'SUPERVISOR']
 
     def get(self, request):
         # Agrupar por región/comuna
@@ -130,99 +136,95 @@ class DashboardRegionalView(RolRequiredMixin, View):
 class ReporteCSVView(RolRequiredMixin, View):
     """
     Exportar reporte de despachos a CSV.
-    Acceso: Gerente, Supervisor.
+    Acceso: Gerente, Supervisor, Administrador.
     """
     roles_permitidos = ['GERENTE', 'SUPERVISOR', 'ADMINISTRADOR']
 
     def get(self, request):
         fecha_desde = request.GET.get('fecha_desde')
         fecha_hasta = request.GET.get('fecha_hasta')
-        
+
         queryset = Despacho.objects.all()
-        
+
         if fecha_desde:
             queryset = queryset.filter(fecha_hora_creacion__gte=fecha_desde)
         if fecha_hasta:
             queryset = queryset.filter(fecha_hora_creacion__lte=fecha_hasta)
-        
-        # Crear respuesta CSV
+
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="reporte_despachos.csv"'
-        
+
         writer = csv.writer(response)
         writer.writerow([
-            'ID Pedido',
+            'ID Despacho',
             'Tipo Movimiento',
             'Farmacia',
             'Motorista',
             'Estado',
             'Fecha Creación',
-            'Fecha Despacho',
-            'Fecha Entrega',
-            'Tiempo Entrega (min)',
+            'Fecha Toma Pedido',
+            'Fecha Salida Farmacia',
+            'Fecha Estimada Llegada',
             'Requiere Receta'
         ])
-        
+
         for despacho in queryset:
             writer.writerow([
-                despacho.id_pedido_externo,
+                despacho.identificador_unico,
                 despacho.get_tipo_movimiento_display(),
-                despacho.farmacia_origen.nombre,
-                despacho.motorista_asignado.usuario.get_full_name(),
+                despacho.farmacia_origen.nombre if despacho.farmacia_origen else '',
+                despacho.motorista_asignado.usuario.get_full_name() if despacho.motorista_asignado and despacho.motorista_asignado.usuario else '',
                 despacho.get_estado_display(),
-                despacho.fecha_hora_creacion.strftime('%Y-%m-%d %H:%M'),
-                despacho.fecha_hora_despacho.strftime('%Y-%m-%d %H:%M') if despacho.fecha_hora_despacho else '',
-                despacho.fecha_hora_entrega.strftime('%Y-%m-%d %H:%M') if despacho.fecha_hora_entrega else '',
-                despacho.tiempo_entrega_minutos or '',
-                'Sí' if despacho.requiere_receta else 'No'
+                despacho.fecha_hora_creacion.strftime('%Y-%m-%d %H:%M') if despacho.fecha_hora_creacion else '',
+                despacho.fecha_hora_toma_pedido.strftime('%Y-%m-%d %H:%M') if despacho.fecha_hora_toma_pedido else '',
+                despacho.fecha_hora_salida_farmacia.strftime('%Y-%m-%d %H:%M') if despacho.fecha_hora_salida_farmacia else '',
+                despacho.fecha_hora_estimada_llegada.strftime('%Y-%m-%d %H:%M') if despacho.fecha_hora_estimada_llegada else '',
+                'Sí' if despacho.tipo_movimiento == 'CON_RECETA' else 'No'
             ])
-        
+
         return response
 
 
 class ReportePDFView(RolRequiredMixin, View):
     """
     Exportar reporte de despachos a PDF.
-    Acceso: Gerente, Supervisor.
+    Acceso: Gerente, Supervisor, Administrador.
     """
     roles_permitidos = ['GERENTE', 'SUPERVISOR', 'ADMINISTRADOR']
 
     def get(self, request):
         fecha_desde = request.GET.get('fecha_desde')
         fecha_hasta = request.GET.get('fecha_hasta')
-        
+
         queryset = Despacho.objects.all()
-        
         if fecha_desde:
             queryset = queryset.filter(fecha_hora_creacion__gte=fecha_desde)
         if fecha_hasta:
             queryset = queryset.filter(fecha_hora_creacion__lte=fecha_hasta)
-        
-        # Crear PDF
+
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter)
         elements = []
-        
+
         styles = getSampleStyleSheet()
-        
-        # Título
         title = Paragraph("Reporte de Despachos", styles['Title'])
         elements.append(title)
-        elements.append(Spacer(1, 0.3*inch))
-        
-        # Tabla
-        data = [['ID Pedido', 'Tipo', 'Farmacia', 'Motorista', 'Estado', 'Fecha Creación']]
-        
+        elements.append(Spacer(1, 0.3 * inch))
+
+        # Header de la tabla
+        data = [['ID Despacho', 'Tipo', 'Farmacia', 'Motorista', 'Estado', 'Fecha Creación', 'Requiere Receta']]
+
         for despacho in queryset[:100]:  # Limitar a 100 registros
             data.append([
-                despacho.id_pedido_externo,
+                despacho.identificador_unico,
                 despacho.get_tipo_movimiento_display(),
-                despacho.farmacia_origen.nombre[:20],
-                despacho.motorista_asignado.usuario.get_full_name()[:20],
+                despacho.farmacia_origen.nombre[:20] if despacho.farmacia_origen else '',
+                despacho.motorista_asignado.usuario.get_full_name()[:20] if despacho.motorista_asignado and despacho.motorista_asignado.usuario else '',
                 despacho.get_estado_display(),
-                despacho.fecha_hora_creacion.strftime('%Y-%m-%d')
+                despacho.fecha_hora_creacion.strftime('%Y-%m-%d %H:%M') if despacho.fecha_hora_creacion else '',
+                'Sí' if despacho.tipo_movimiento == 'CON_RECETA' else 'No'
             ])
-        
+
         table = Table(data)
         table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), '#40466e'),
@@ -234,13 +236,11 @@ class ReportePDFView(RolRequiredMixin, View):
             ('BACKGROUND', (0, 1), (-1, -1), '#f0f0f0'),
             ('GRID', (0, 0), (-1, -1), 1, '#ccc'),
         ]))
-        
+
         elements.append(table)
-        
-        # Generar PDF
         doc.build(elements)
         buffer.seek(0)
-        
+
         response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
         response['Content-Disposition'] = 'attachment; filename="reporte_despachos.pdf"'
         return response
@@ -258,7 +258,7 @@ def dashboard_general(request):
         return redirect('login')
     
     # Verificar roles permitidos
-    if request.user.rol not in ['ADMINISTRADOR', 'SUPERVISOR', 'GERENTE']:
+    if request.user.rol not in ['ADMINISTRADOR', 'GERENTE']:
         messages.error(request, 'No tienes acceso al dashboard general.')
         return redirect('home')
     
@@ -278,7 +278,7 @@ def dashboard_general(request):
     motoristas_total = Motorista.objects.count()
     
     # Motos disponibles
-    motos_disponibles = Moto.objects.filter(disponible=True).count()
+    motos_disponibles = Moto.objects.filter(estado='OPERATIVO').count()
     motos_total = Moto.objects.count()
     
     # Farmacias
@@ -287,13 +287,13 @@ def dashboard_general(request):
     # Tiempo promedio de entrega
     despachos_entregados_obj = Despacho.objects.filter(
         estado='ENTREGADO',
-        fecha_hora_entrega__isnull=False,
+        fecha_hora_estimada_llegada__isnull=False,
         fecha_hora_despacho__isnull=False
     )
     
     if despachos_entregados_obj.exists():
         total_minutos = sum(
-            int((d.fecha_hora_entrega - d.fecha_hora_despacho).total_seconds() / 60)
+            int((d.fecha_hora_estimada_llegada - d.fecha_hora_despacho).total_seconds() / 60)
             for d in despachos_entregados_obj
         )
         tiempo_promedio = total_minutos // len(despachos_entregados_obj)
@@ -352,30 +352,105 @@ def dashboard_regional(request):
     return render(request, 'dashboard/dashboard_regional.html', context)
 
 
-def reporte_csv(request):
+def rango_fechas_por_tipo(tipo_reporte):
+    hoy = datetime.now().date()
+    if tipo_reporte == "diario":
+        return hoy, hoy
+    elif tipo_reporte == "mensual":
+        primero = hoy.replace(day=1)
+        return primero, hoy
+    elif tipo_reporte == "anual":
+        primero = hoy.replace(month=1, day=1)
+        return primero, hoy
+    return None, None
+
+def reportes_filtro(request):
     """
-    Exportar reporte CSV - vista por función.
+    Muestra la pantalla de filtros (general, diario, mensual, anual), preview y botones de exportación.
     """
-    if not request.user.is_authenticated:
-        return redirect('login')
-    
-    if request.user.rol not in ['GERENTE', 'SUPERVISOR', 'ADMINISTRADOR']:
-        messages.error(request, 'No tienes permiso para descargar reportes.')
-        return redirect('home')
-    
-    fecha_desde = request.GET.get('fecha_desde')
-    fecha_hasta = request.GET.get('fecha_hasta')
-    
+    tipo_filtro = request.GET.get("tipo_filtro", "diario")
+    fecha_str = request.GET.get("fecha", "")
+    mes_str = request.GET.get("mes", "")
+    anio_str = request.GET.get("anio", "")
+    motorista_id = request.GET.get("id_motorista", "")
+
     queryset = Despacho.objects.all()
-    
+
+    fecha_desde, fecha_hasta = None, None
+    if tipo_filtro == "diario" and fecha_str:
+        fecha_desde = fecha_hasta = parse_date(fecha_str)
+    elif tipo_filtro == "mensual" and mes_str:
+        fecha_desde = parse_date(mes_str + "-01")
+        if fecha_desde.month == 12:
+            next_month = fecha_desde.replace(year=fecha_desde.year + 1, month=1, day=1)
+        else:
+            next_month = fecha_desde.replace(month=fecha_desde.month + 1, day=1)
+        fecha_hasta = next_month - timedelta(days=1)
+    elif tipo_filtro == "anual" and anio_str.isdigit():
+        fecha_desde = datetime(int(anio_str), 1, 1)
+        fecha_hasta = datetime(int(anio_str), 12, 31)
+
     if fecha_desde:
         queryset = queryset.filter(fecha_hora_creacion__gte=fecha_desde)
     if fecha_hasta:
         queryset = queryset.filter(fecha_hora_creacion__lte=fecha_hasta)
-    
+    if motorista_id:
+        queryset = queryset.filter(motorista_asignado__identificador_unico=motorista_id)
+
+    # Puedes limitar resultados si es necesario: .order_by('-fecha_hora_creacion')[:100]
+    return render(request, "dashboard/dashboard_report_list.html", {
+        "despachos": queryset,
+        "tipo_filtro": tipo_filtro,
+        "fecha": fecha_str,
+        "mes": mes_str,
+        "anio": anio_str,
+        "id_motorista": motorista_id,
+    })
+
+def reporte_csv(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    # Permisos
+    if request.user.rol not in ['GERENTE', 'SUPERVISOR', 'ADMINISTRADOR', 'OPERADOR']:
+        messages.error(request, 'No tienes permiso para descargar reportes.')
+        return redirect('home')
+
+    # Obten los filtros desde GET (puedes usar POST si prefieres)
+    tipo_filtro = request.GET.get("tipo_filtro", "diario")
+    fecha_str = request.GET.get("fecha", "")
+    mes_str = request.GET.get("mes", "")
+    anio_str = request.GET.get("anio", "")
+    motorista_id = request.GET.get("id_motorista", "")  # Cambia a id_motorista para consistencia
+
+    fecha_desde, fecha_hasta = None, None
+
+    # Calcular rangos de fecha según filtro
+    if tipo_filtro == "diario" and fecha_str:
+        fecha_desde = fecha_hasta = parse_date(fecha_str)
+    elif tipo_filtro == "mensual" and mes_str:
+        fecha_desde = parse_date(mes_str + "-01")
+        if fecha_desde.month == 12:
+            next_month = fecha_desde.replace(year=fecha_desde.year + 1, month=1, day=1)
+        else:
+            next_month = fecha_desde.replace(month=fecha_desde.month + 1, day=1)
+        fecha_hasta = next_month - timedelta(days=1)
+    elif tipo_filtro == "anual" and anio_str.isdigit():
+        fecha_desde = datetime(int(anio_str), 1, 1)
+        fecha_hasta = datetime(int(anio_str), 12, 31)
+    elif tipo_filtro == "general":
+        fecha_desde, fecha_hasta = None, None
+
+    queryset = Despacho.objects.all()
+    if fecha_desde:
+        queryset = queryset.filter(fecha_hora_creacion__gte=fecha_desde)
+    if fecha_hasta:
+        queryset = queryset.filter(fecha_hora_creacion__lte=fecha_hasta)
+    if motorista_id:
+        queryset = queryset.filter(motorista_asignado__identificador_unico=motorista_id)
+
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="reporte_despachos.csv"'
-    
     writer = csv.writer(response)
     writer.writerow([
         'ID Pedido',
@@ -389,21 +464,20 @@ def reporte_csv(request):
         'Tiempo Entrega (min)',
         'Requiere Receta'
     ])
-    
     for despacho in queryset:
         writer.writerow([
-            despacho.id_pedido_externo,
+            despacho.identificador_unico,
             despacho.get_tipo_movimiento_display(),
-            despacho.farmacia_origen.nombre,
-            despacho.motorista_asignado.usuario.get_full_name(),
+            despacho.farmacia_origen.nombre if despacho.farmacia_origen else '',
+            despacho.motorista_asignado.usuario.get_full_name() if despacho.motorista_asignado and despacho.motorista_asignado.usuario else '',
             despacho.get_estado_display(),
-            despacho.fecha_hora_creacion.strftime('%Y-%m-%d %H:%M'),
+            despacho.fecha_hora_creacion.strftime('%Y-%m-%d %H:%M') if despacho.fecha_hora_creacion else '',
             despacho.fecha_hora_despacho.strftime('%Y-%m-%d %H:%M') if despacho.fecha_hora_despacho else '',
-            despacho.fecha_hora_entrega.strftime('%Y-%m-%d %H:%M') if despacho.fecha_hora_entrega else '',
+            despacho.fecha_hora_estimada_llegada.strftime('%Y-%m-%d %H:%M') if despacho.fecha_hora_estimada_llegada else '',
             despacho.tiempo_entrega_minutos or '',
             'Sí' if despacho.requiere_receta else 'No'
         ])
-    
+
     return response
 
 
@@ -414,7 +488,12 @@ def reporte_pdf(request):
     if not request.user.is_authenticated:
         return redirect('login')
     
-    if request.user.rol not in ['GERENTE', 'SUPERVISOR', 'ADMINISTRADOR']:
+
+    tipo_reporte = request.GET.get("tipo", "diario")
+    fecha_desde, fecha_hasta = rango_fechas_por_tipo(tipo_reporte)
+
+
+    if request.user.rol not in ['GERENTE', 'SUPERVISOR', 'ADMINISTRADOR', 'OPERADOR']:
         messages.error(request, 'No tienes permiso para descargar reportes.')
         return redirect('home')
     
@@ -442,12 +521,12 @@ def reporte_pdf(request):
     
     for despacho in queryset[:100]:
         data.append([
-            despacho.id_pedido_externo,
+            despacho.identificador_unico,
             despacho.get_tipo_movimiento_display(),
-            despacho.farmacia_origen.nombre[:20],
-            despacho.motorista_asignado.usuario.get_full_name()[:20],
+            despacho.farmacia_origen.nombre[:20] if despacho.farmacia_origen else '',
+            despacho.motorista_asignado.usuario.get_full_name()[:20] if despacho.motorista_asignado and despacho.motorista_asignado.usuario else '',
             despacho.get_estado_display(),
-            despacho.fecha_hora_creacion.strftime('%Y-%m-%d')
+            despacho.fecha_hora_creacion.strftime('%Y-%m-%d') if despacho.fecha_hora_creacion else ''
         ])
     
     table = Table(data)
@@ -470,3 +549,11 @@ def reporte_pdf(request):
     response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="reporte_despachos.pdf"'
     return response
+
+
+def puede_descargar(user, tipo):
+    if user.rol in ['ADMINISTRADOR', 'GERENTE'] and tipo in ['diario', 'mensual', 'anual']:
+        return True
+    if user.rol in ['SUPERVISOR', 'OPERADOR'] and tipo == 'diario':
+        return True
+    return False

@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle Moto - LogiCo{% endblock %}
+
+{% block content %}
+<h1 class="page-title"><i class="bi bi-bicycle"></i> Detalle Moto</h1>
+
+<div class="card mb-3">
+    <div class="row g-0">
+        {% if moto.imagen %}
+        <div class="col-md-4 d-flex align-items-center justify-content-center">
+            <a>-----------------------------------------------------------------------------------------</a>
+            <br>
+            <img src="{{ moto.imagen.url }}" class="img-fluid rounded" alt="Foto Moto" style="max-width:220px;">
+            <br>
+            <a>-----------------------------------------------------------------------------------------</a>
+        </div>
+        {% endif %}
+        <div class="col-md-{{ moto.imagen|yesno:"8,12" }}">
+            <div class="card-body">
+                <h4>{{ moto.marca }} {{ moto.modelo }} ({{ moto.patente }})</h4>
+                <ul class="list-group list-group-flush mb-3">
+                    <li class="list-group-item"><strong>ID Único:</strong> <span class="badge bg-primary">{{ moto.identificador_unico }}</span></li>
+                    <li class="list-group-item"><strong>Color:</strong> {{ moto.color }}</li>
+                    <li class="list-group-item"><strong>Año de fabricación:</strong> {{ moto.anio_fabricacion }}</li>
+                    <li class="list-group-item"><strong>N° Chasis:</strong> {{ moto.numero_chasis }}</li>
+                    <li class="list-group-item"><strong>N° Motor:</strong> {{ moto.numero_motor }}</li>
+                    <li class="list-group-item"><strong>Permiso vigente:</strong> {% if moto.permiso_circulacion_vigente %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-danger">No</span>{% endif %}</li>
+                    <li class="list-group-item"><strong>Revisión técnica al día:</strong> {% if moto.revision_tecnica_vigente %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-danger">No</span>{% endif %}</li>
+                    <li class="list-group-item"><strong>Estado:</strong><span class="badge bg-info">{{ moto.get_estado_display }}</span></li>
+                    <li class="list-group-item"><strong>Consumo de combustible:</strong> {{ moto.consumo_combustible }} L/100km</li>
+                    <li class="list-group-item"><strong>Capacidad de carga:</strong> {{ moto.capacidad_carga }} kg</li>
+                    <li class="list-group-item"><strong>Velocidad promedio:</strong> {{ moto.velocidad_promedio }} km/h</li>
+                    <li class="list-group-item"><strong>Frenadas bruscas:</strong> {{ moto.frenadas_bruscas }}</li>
+                    <li class="list-group-item"><strong>Aceleraciones rápidas:</strong> {{ moto.aceleraciones_rapidas }}</li>
+                    <li class="list-group-item"><strong>Tiempo de inactividad:</strong> {{ moto.tiempo_inactividad_horas }} h</li>
+                </ul>
+                
+                <!-- Historial de mantenimientos -->
+                {% if moto.mantenimientos.exists and moto.estado == 'EN_MANTENIMIENTO' %}
+                    <h5>Historial de Mantenimiento</h5>
+                    <ul class="list-group list-group-flush mb-3">
+                        {% for mant in moto.mantenimientos.all %}
+                        <li class="list-group-item"><strong>Tipo de Servicio:</strong>{{ mant.tipo_servicio }}</li>
+                        <li class="list-group-item"><strong>Descripción del Mantenimiento:</strong>{{ mant.descripcion }}</li>
+                        <li class="list-group-item"><strong>Fecha de Nacimiento:</strong>{{ mant.fecha_mantenimiento }}</li>
+                        <li class="list-group-item"><strong>Kilometraje:</strong>{{ mant.kilometraje }}</li>
+                        <li class="list-group-item"><strong>Próximo Mantenimiento:</strong>{{ mant.proximo_mantenimiento }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                
+                <div class="d-flex gap-2 mt-3">
+                    {% if puede_editar %}
+                    <a href="{% url 'moto_editar' moto.pk %}" class="btn btn-warning">
+                        <i class="bi bi-pencil"></i> Editar
+                    </a>
+                    <a href="{% url 'moto_eliminar' moto.pk %}" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Eliminar
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'moto_listar' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Volver al listado
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

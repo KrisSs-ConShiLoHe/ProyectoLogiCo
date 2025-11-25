@@ -52,7 +52,7 @@ class AsignacionMotoViewSet(viewsets.ModelViewSet):
         # create new
         from ..models import Moto as MotoModel, AsignacionMoto as AsignacionMotoModel
         try:
-            moto = MotoModel.objects.get(pk=nueva_moto_id, disponible=True)
+            moto = MotoModel.objects.get(pk=nueva_moto_id, estado='OPERATIVO')
         except MotoModel.DoesNotExist:
             return Response({'detail': 'Moto no disponible'}, status=status.HTTP_400_BAD_REQUEST)
         nueva = AsignacionMotoModel.objects.create(motorista=motorista, moto=moto, activa=True)

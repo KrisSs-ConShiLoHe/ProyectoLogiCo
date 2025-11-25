@@ -156,10 +156,8 @@ def home(request):
         elif request.user.rol == 'GERENTE':
             return redirect('dashboard_regional')
         elif request.user.rol == 'SUPERVISOR':
-            return redirect('dashboard_general')
+            return redirect('dashboard_regional')
         elif request.user.rol == 'OPERADOR':
-            return redirect('despacho_listar')
-        elif request.user.rol == 'MOTORISTA':
             return redirect('despacho_listar')
     
     return render(request, 'home.html', {'user': request.user})

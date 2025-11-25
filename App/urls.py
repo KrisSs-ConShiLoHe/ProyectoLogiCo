@@ -21,6 +21,7 @@ urlpatterns = [
     path('farmacias/crear/', farmacia.crear_farmacia, name='farmacia_crear'),
     path('farmacias/<int:pk>/editar/', farmacia.editar_farmacia, name='farmacia_editar'),
     path('farmacias/<int:pk>/eliminar/', farmacia.eliminar_farmacia, name='farmacia_eliminar'),
+    path('farmacias/<int:pk>/', farmacia.FarmaciaDetailView.as_view(), name='farmacia_detalle'),
 
     # ============================================
     # MOTORISTAS
@@ -29,6 +30,7 @@ urlpatterns = [
     path('motoristas/crear/', motorista.crear_motorista, name='motorista_crear'),
     path('motoristas/<int:pk>/editar/', motorista.editar_motorista, name='motorista_editar'),
     path('motoristas/<int:pk>/eliminar/', motorista.eliminar_motorista, name='motorista_eliminar'),
+    path('motoristas/<int:pk>/', motorista.MotoristaDetailView.as_view(), name='motorista_detalle'),
 
     # ============================================
     # MOTOS
@@ -37,6 +39,7 @@ urlpatterns = [
     path('motos/crear/', moto.crear_moto, name='moto_crear'),
     path('motos/<int:pk>/editar/', moto.editar_moto, name='moto_editar'),
     path('motos/<int:pk>/eliminar/', moto.eliminar_moto, name='moto_eliminar'),
+    path('motos/<int:pk>/', moto.MotoDetailView.as_view(), name='moto_detalle'),
 
     # ============================================
     # ASIGNACIÓN MOTO
@@ -59,6 +62,7 @@ urlpatterns = [
     path('despachos/crear/', despacho.crear_despacho, name='despacho_crear'),
     path('despachos/<int:pk>/editar/', despacho.editar_despacho, name='despacho_editar'),
     path('despachos/<int:pk>/anular/', despacho.anular_despacho, name='despacho_anular'),
+    path('despachos/<int:pk>/', despacho.DespachoDetailView.as_view(), name='despacho_detalle'),
     path('despachos/<int:pk>/cambiar_estado/', despacho.cambiar_estado_despacho, name='despacho_cambiar_estado'),
 
     # ============================================
@@ -66,8 +70,17 @@ urlpatterns = [
     # ============================================
     path('dashboard/', dashboard.dashboard_general, name='dashboard_general'),
     path('dashboard/regional/', dashboard.dashboard_regional, name='dashboard_regional'),
+    path('reportes/', dashboard.reportes_filtro, name='reportes'),
     path('reportes/csv/', dashboard.reporte_csv, name='reporte_csv'),
     path('reportes/pdf/', dashboard.reporte_pdf, name='reporte_pdf'),
+    
+    # ============================================
     # API
+    # ============================================
     path('api/', include('App.api.urls')),
+
+    # ============================================
+    # AJAX
+    # ============================================ 
+    path('motoristas-por-farmacia/', despacho.motoristas_por_farmacia, name='motoristas_por_farmacia'),
 ]

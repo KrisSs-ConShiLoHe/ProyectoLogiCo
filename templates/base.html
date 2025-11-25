@@ -94,22 +94,20 @@
                         <i class="bi bi-box-seam"></i> Despachos
                     </a>
 
-                    {% if user.rol in "ADMINISTRADOR|SUPERVISOR|GERENTE" %}
+                    {% if user.rol in "ADMINISTRADOR" %}
                     <hr>
-                    <h6 class="px-3 py-2 text-muted small">REPORTES</h6>
+                    <h6 class="px-3 py-2 text-muted small">Sección Gestión</h6>
                     <a class="nav-link" href="{% url 'dashboard_general' %}">
                         <i class="bi bi-graph-up"></i> Dashboard General
                     </a>
-                    {% if user.rol in "GERENTE|SUPERVISOR" %}
+                    {% if user.rol in "ADMINISTRADOR|GERENTE|SUPERVISOR" %}
                     <a class="nav-link" href="{% url 'dashboard_regional' %}">
                         <i class="bi bi-map"></i> Dashboard Regional
                     </a>
                     {% endif %}
-                    <a class="nav-link" href="{% url 'reporte_csv' %}">
-                        <i class="bi bi-filetype-csv"></i> Exportar CSV
-                    </a>
-                    <a class="nav-link" href="{% url 'reporte_pdf' %}">
-                        <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
+                    
+                    <a class="nav-link" href="{% url 'reportes' %}">
+                        <i class="bi bi-r-square-fill"></i> Reportes
                     </a>
                     {% endif %}
                 </nav>

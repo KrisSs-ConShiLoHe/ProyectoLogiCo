@@ -2,13 +2,15 @@
 Vistas CRUD para Farmacias
 """
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.core.paginator import Paginator
 from ..models import Farmacia
 from ..forms import FarmaciaForm
 from ..decorators import SupervisorOAdminMixin, RolRequiredMixin, LoginRequiredMixin
+import django_filters
+from django_filters.views import FilterView
 
 
 # ============================================
@@ -40,7 +42,11 @@ class CrearFarmaciaView(SupervisorOAdminMixin, CreateView):
     success_url = reverse_lazy('farmacia_listar')
 
     def form_valid(self, form):
-        messages.success(self.request, 'Farmacia creada exitosamente.')
+        self.object = form.save(commit=False)
+        if self.request.FILES:
+            self.object.imagen = self.request.FILES.get('imagen')
+        self.object.save()
+        messages.success(self.request, 'Farmacia creada/modificada exitosamente.')
         return super().form_valid(form)
 
     def form_invalid(self, form):
@@ -58,7 +64,11 @@ class ModificarFarmaciaView(SupervisorOAdminMixin, UpdateView):
     success_url = reverse_lazy('farmacia_listar')
 
     def form_valid(self, form):
-        messages.success(self.request, 'Farmacia modificada exitosamente.')
+        self.object = form.save(commit=False)
+        if self.request.FILES:
+            self.object.imagen = self.request.FILES.get('imagen')
+        self.object.save()
+        messages.success(self.request, 'Farmacia creada/modificada exitosamente.')
         return super().form_valid(form)
 
     def form_invalid(self, form):
@@ -77,6 +87,38 @@ class EliminarFarmaciaView(SupervisorOAdminMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(request, 'Farmacia eliminada exitosamente.')
         return super().delete(request, *args, **kwargs)
+    
+
+class FarmaciaDetailView(LoginRequiredMixin, DetailView):
+    model = Farmacia
+    template_name = 'farmacia/farmacia_detail.html'
+    context_object_name = 'farmacia'
+
+
+class FarmaciaFilter(django_filters.FilterSet):
+    identificador_unico = django_filters.CharFilter(lookup_expr='icontains')
+    comuna = django_filters.CharFilter(lookup_expr='icontains')
+    region = django_filters.CharFilter(lookup_expr='icontains')
+    horario_recepcion_inicio = django_filters.CharFilter(lookup_expr='icontains')
+    horario_recepcion_fin = django_filters.CharFilter(lookup_expr='icontains')
+    dias_operativos = django_filters.CharFilter(lookup_expr='icontains')
+
+    class Meta:
+        model = Farmacia
+        fields = ['identificador_unico', 'region', 'comuna', 'horario_recepcion_inicio', 'horario_recepcion_fin', 'dias_operativos']
+
+
+class FarmaciaListFilterView(LoginRequiredMixin, FilterView):
+    model = Farmacia
+    template_name = 'farmacia/farmacia_list.html'
+    filterset_class = FarmaciaFilter
+    context_object_name = 'farmacias'
+    paginate_by = 20
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['puede_editar'] = self.request.user.rol in ['ADMINISTRADOR', 'SUPERVISOR']
+        return context
 
 
 # ============================================
@@ -87,17 +129,33 @@ def listar_farmacias(request):
     """
     Listar todas las farmacias con paginación.
     """
+    query_id = request.GET.get('identificador_unico')
+    query_nombre = request.GET.get('nombre')
+    query_region = request.GET.get('region')
+    query_comuna = request.GET.get('comuna')
+    query_horario_inicio = request.GET.get('horario_recepcion_inicio')
+    query_horario_fin = request.GET.get('horario_recepcion_fin')
+    query_dias = request.GET.get('dias_operativos')
+
     if not request.user.is_authenticated:
         return redirect('login')
+
+    qs = Farmacia.objects.all()
+    if query_id: qs = qs.filter(identificador_unico__icontains=query_id)
+    if query_nombre: qs = qs.filter(nombre__icontains=query_nombre)
+    if query_region: qs = qs.filter(region__icontains=query_region)
+    if query_comuna: qs = qs.filter(comuna__icontains=query_comuna)
+    if query_horario_inicio: qs = qs.filter(horario_recepcion_inicio__icontains=query_horario_inicio)
+    if query_horario_fin: qs = qs.filter(horario_recepcion_fin__icontains=query_horario_fin)
+    if query_dias: qs = qs.filter(dias_operativos__icontains=query_dias)
     
-    farmacias = Farmacia.objects.all()
-    paginator = Paginator(farmacias, 20)
+    paginator = Paginator(qs, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
     context = {
-        'page_obj': page_obj,
-        'farmacias': page_obj,
+        'farmacias': page_obj,  # ← Cambio aquí
+        'is_paginated': paginator.num_pages > 1,  # ← Añadir esto
         'puede_editar': request.user.rol in ['ADMINISTRADOR', 'SUPERVISOR']
     }
     return render(request, 'farmacia/farmacia_list.html', context)
@@ -115,7 +173,7 @@ def crear_farmacia(request):
         return redirect('farmacia_listar')
     
     if request.method == 'POST':
-        form = FarmaciaForm(request.POST)
+        form = FarmaciaForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
             messages.success(request, 'Farmacia creada exitosamente.')
@@ -142,7 +200,7 @@ def editar_farmacia(request, pk):
     farmacia = get_object_or_404(Farmacia, pk=pk)
     
     if request.method == 'POST':
-        form = FarmaciaForm(request.POST, instance=farmacia)
+        form = FarmaciaForm(request.POST, request.FILES, instance=farmacia)
         if form.is_valid():
             form.save()
             messages.success(request, 'Farmacia modificada exitosamente.')

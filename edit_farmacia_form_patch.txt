@@ -1,0 +1,6 @@
+<img src="{{ farmacia.imagen.url }}" alt="Foto de Farmacia" />
+            {% endif %}
+=======
+            {% if farmacia.imagen %}
+                <img src="{{ farmacia.imagen.url }}" alt="Foto de Farmacia" />
+            {% endif %}

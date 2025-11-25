@@ -9,40 +9,101 @@
     {% endif %}
 </div>
 
+<!-- Filtros -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-2">
+                <label class="form-label">ID único</label>
+                <input type="text" name="identificador_unico" value="{{ request.GET.identificador_unico }}" class="form-control" placeholder="ID único">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Patente</label>
+                <input type="text" name="patente" value="{{ request.GET.patente }}" class="form-control" placeholder="Patente">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Marca</label>
+                <input type="text" name="marca" value="{{ request.GET.marca }}" class="form-control" placeholder="Marca">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Modelo</label>
+                <input type="text" name="modelo" value="{{ request.GET.modelo }}" class="form-control" placeholder="Modelo">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Estado</label>
+                <select name="estado" class="form-select">
+                    <option value="">Todos los estados</option>
+                    <option value="OPERATIVO"{% if request.GET.estado == "OPERATIVO" %} selected{% endif %}>Operativo</option>
+                    <option value="OCUPADO"{% if request.GET.estado == "OCUPADO" %} selected{% endif %}>Ocupado</option>
+                    <option value="EN_TALLER"{% if request.GET.estado == "EN_TALLER" %} selected{% endif %}>En Taller</option>
+                    <option value="FUERA_DE_SERVICIO"{% if request.GET.estado == "FUERA_DE_SERVICIO" %} selected{% endif %}>Fuera de Servicio</option>
+                    <option value="EN_MANTENIMIENTO"{% if request.GET.estado == "EN_MANTENIMIENTO" %} selected{% endif %}>En Mantenimiento</option>
+                </select>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="bi bi-search"></i> Filtrar
+                </button>
+                <a href="{% url 'moto_listar' %}" class="btn btn-secondary btn-sm">
+                    <i class="bi bi-x-circle"></i> Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="card">
     <div class="table-responsive">
         <table class="table table-hover mb-0">
             <thead>
                 <tr>
+                    <th>ID</th>
                     <th>Patente</th>
                     <th>Marca</th>
                     <th>Modelo</th>
-                    <th>Disponible</th>
+                    <th>Estado</th>
                     {% if puede_editar %}<th>Acciones</th>{% endif %}
                 </tr>
             </thead>
             <tbody>
                 {% for moto in page_obj %}
                 <tr>
+                    <td>{{ moto.identificador_unico }}</td>
                     <td>{{ moto.patente }}</td>
                     <td>{{ moto.marca }}</td>
                     <td>{{ moto.modelo }}</td>
-                    <td>{% if moto.disponible %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+                    <td>
+                        {% if moto.estado == 'OPERATIVO' %}
+                            <span class="badge bg-success">{{ moto.get_estado_display }}</span>
+                        {% elif moto.estado == 'OCUPADO' %}
+                            <span class="badge bg-primary">{{ moto.get_estado_display }}</span>
+                        {% elif moto.estado == 'EN_TALLER' %}
+                            <span class="badge bg-warning">{{ moto.get_estado_display }}</span>
+                        {% elif moto.estado == 'FUERA_DE_SERVICIO' %}
+                            <span class="badge bg-danger">{{ moto.get_estado_display }}</span>
+                        {% elif moto.estado == 'EN_MANTENIMIENTO' %}
+                            <span class="badge bg-info">{{ moto.get_estado_display }}</span>
+                        {% else %}
+                            {{ moto.get_estado_display }}
+                        {% endif %}
+                    </td>
                     {% if puede_editar %}
                     <td>
                         <a href="{% url 'moto_editar' moto.pk %}" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
                         <a href="{% url 'moto_eliminar' moto.pk %}" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
+                        <a href="{% url 'moto_detalle' moto.pk %}" class="btn btn-sm btn-primary"><i class="bi bi-journal-text"></i></a>
                     </td>
                     {% endif %}
                 </tr>
                 {% empty %}
-                <tr><td colspan="5" class="text-center">No hay motos registradas.</td></tr>
+                <tr><td colspan="{% if puede_editar %}7{% else %}6{% endif %}" class="text-center">No hay motos registradas.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
 
+<!-- Paginación -->
 {% if is_paginated %}
 <nav aria-label="pagination">
   <ul class="pagination mt-3">

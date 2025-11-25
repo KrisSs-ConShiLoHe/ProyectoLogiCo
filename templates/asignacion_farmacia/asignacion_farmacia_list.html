@@ -9,14 +9,65 @@
     {% endif %}
 </div>
 
+<!-- Filtros -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+          <div class="col-md-2">
+                <label class="form-label">ID único</label>
+                <input type="text" name="id_motorista" value="{{ request.GET.id_motorista }}" class="form-control" placeholder="ID único">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Motorista</label>
+                <input type="text" name="motorista" value="{{ request.GET.motorista }}" class="form-control" placeholder="Motorista (nombre, apellido, rut o ID único)">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">ID único</label>
+                <input type="text" name="id_farmacia" value="{{ request.GET.id_farmacia }}" class="form-control" placeholder="ID único">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Farmacia</label>
+                <input type="text" name="farmacia" value="{{ request.GET.farmacia }}" class="form-control" placeholder="Farmacia (nombre o identificador)">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Fecha asignación</label>
+                <input type="date" name="fecha_asignacion" value="{{ request.GET.fecha_asignacion }}" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Fecha desasignación</label>
+                <input type="date" name="fecha_desasignacion" value="{{ request.GET.fecha_desasignacion }}" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Activa</label>
+                <select name="activa" class="form-select">
+                    <option value="">Todas</option>
+                    <option value="true"{% if request.GET.activa == "true" %} selected{% endif %}>Solo activas</option>
+                    <option value="false"{% if request.GET.activa == "false" %} selected{% endif %}>Solo inactivas</option>
+                </select>
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-primary btn-sm">
+                  <i class="bi bi-search"></i> Filtrar
+              </button>
+              <a href="{% url 'asignacion_farmacia_listar' %}" class="btn btn-secondary btn-sm">
+                  <i class="bi bi-x-circle"></i> Limpiar
+               </a>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="card">
   <div class="table-responsive">
     <table class="table table-hover">
       <thead>
         <tr>
+          <th>ID</th>
           <th>Motorista</th>
+          <th>ID</th>
           <th>Farmacia</th>
           <th>Fecha Asignación</th>
+          <th>Fecha Desasignación</th>
           <th>Activa</th>
           <th>Acciones</th>
         </tr>
@@ -24,33 +75,39 @@
       <tbody>
         {% for a in page_obj %}
         <tr>
+          <td>{{ a.motorista.identificador_unico }}</td>
           <td>{{ a.motorista.usuario.get_full_name }}</td>
+          <td>{{ a.farmacia.identificador_unico }}</td>
           <td>{{ a.farmacia.nombre }}</td>
           <td>{{ a.fecha_asignacion }}</td>
+          <td>{{ a.fecha_desasignacion }}</td>
           <td>{% if a.activa %}<span class="badge bg-success">Activa</span>{% else %}<span class="badge bg-secondary">Inactiva</span>{% endif %}</td>
           <td>
             {% if request.user.rol in 'ADMINISTRADOR|SUPERVISOR' %}
-            <a href="{% url 'asignacion_farmacia_reemplazar' a.pk %}" class="btn btn-sm btn-warning">Reemplazar</a>
+              {% if a.activa %}
+                <a href="{% url 'asignacion_farmacia_reemplazar' a.pk %}" class="btn btn-sm btn-warning">Reemplazar</a>
+              {% endif %}
             {% endif %}
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="5" class="text-center">No hay asignaciones.</td></tr>
+        <tr><td colspan="{% if puede_editar %}8{% else %}8{% endif %}" class="text-center">No hay asignaciones registrados.</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
 
+<!-- Paginación -->
 {% if is_paginated %}
 <nav aria-label="pagination">
   <ul class="pagination mt-3">
-    {% if page_obj.has_previous %}
-    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+    {% if farmacias.has_previous %}
+    <li class="page-item"><a class="page-link" href="?page={{ farmacias.previous_page_number }}">Anterior</a></li>
     {% endif %}
-    <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
-    {% if page_obj.has_next %}
-    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
+    <li class="page-item active"><span class="page-link">{{ farmacias.number }}</span></li>
+    {% if farmacias.has_next %}
+    <li class="page-item"><a class="page-link" href="?page={{ farmacias.next_page_number }}">Siguiente</a></li>
     {% endif %}
   </ul>
 </nav>
