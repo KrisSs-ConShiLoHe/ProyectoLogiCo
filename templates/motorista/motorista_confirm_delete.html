@@ -1,14 +1,56 @@
 {% extends 'base.html' %}
+
 {% block title %}Eliminar Motorista - LogiCo{% endblock %}
 
 {% block content %}
-<div class="card p-4">
-  <h3>Eliminar Motorista</h3>
-  <p>¿Estás seguro que deseas eliminar al motorista <strong>{{ motorista.usuario.get_full_name }} ({{ motorista.rut }})</strong>?</p>
-  <form method="post">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-danger">Eliminar</button>
-    <a class="btn btn-secondary" href="{% url 'motorista_listar' %}">Cancelar</a>
-  </form>
+<h1 class="page-title"><i class="bi bi-trash"></i> Eliminar Motorista</h1>
+
+<div class="card border-danger">
+    <div class="card-body">
+        <div class="alert alert-danger">
+            <strong>Advertencia:</strong> Esta acción no se puede deshacer.
+        </div>
+        
+        <p>¿Estás seguro de que deseas eliminar el siguiente motorista?</p>
+        
+        <div class="alert alert-light">
+            <strong>ID Único:</strong> {{ motorista.identificador_unico }}<br>
+            <strong>Nombre:</strong> {{ motorista.nombre }}<br>
+            <strong>Apellido Paterno:</strong> {{ motorista.apellido_paterno }}<br>
+            <strong>Apellido Materno:</strong> {{ motorista.apellido_materno }}<br>
+            <strong>RUT:</strong> {{ motorista.rut }}<br>
+            <strong>Domicilio:</strong> {{ motorista.domicilio }}<br>
+            <strong>Correo:</strong> {{ motorista.correo }}<br>
+            <strong>Teléfono:</strong> {{ motorista.telefono }}<br>
+            <strong>Contacto de emergencia:</strong> {{ motorista.emergencia_nombre }} ({{ motorista.emergencia_telefono }})<br>
+            <strong>Tipo licencia:</strong> {{ motorista.licencia_tipo }}<br>
+            <strong>Licencia vigente:</strong>
+                {% if motorista.licencia_vigente %}
+                    <span class="badge bg-success">Sí</span>
+                {% else %}
+                    <span class="badge bg-danger">No</span>
+                {% endif %}<br>
+            <strong>Disponibilidad:</strong> <span class="badge bg-info">{{ motorista.get_disponibilidad_display }}</span><br>
+            <strong>Posesión de Moto:</strong> <span class="badge bg-primary">{{ motorista.get_posesion_moto_display }}</span><br>
+            <strong>Activo:</strong>
+                {% if motorista.activo %}
+                    <span class="badge bg-success">Sí</span>
+                {% else %}
+                    <span class="badge bg-danger">No</span>
+                {% endif %}
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-check-circle"></i> Sí, eliminar
+                </button>
+                <a href="{% url 'motorista_listar' %}" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+
 {% block title %}Motoristas - LogiCo{% endblock %}
 
 {% block content %}
@@ -9,38 +10,142 @@
     {% endif %}
 </div>
 
+<!-- Filtros -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-2">
+                <label class="form-label">ID único</label>
+                <input type="text" name="identificador_unico" value="{{ request.GET.identificador_unico }}" class="form-control" placeholder="ID único">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Nombre</label>
+                <input type="text" name="nombre" value="{{ request.GET.nombre }}" class="form-control" placeholder="Nombre">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Apellido paterno</label>
+                <input type="text" name="apellido_paterno" value="{{ request.GET.apellido_paterno }}" class="form-control" placeholder="Apellido paterno">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Apellido materno</label>
+                <input type="text" name="apellido_materno" value="{{ request.GET.apellido_materno }}" class="form-control" placeholder="Apellido materno">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">RUT</label>
+                <input type="text" name="rut" value="{{ request.GET.rut }}" class="form-control" placeholder="RUT">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Licencia vigente</label>
+                <select name="licencia_vigente" class="form-select">
+                    <option value="">Licencia vigente (todos)</option>
+                    <option value="true"{% if request.GET.licencia_vigente == "true" %} selected{% endif %}>Sí</option>
+                    <option value="false"{% if request.GET.licencia_vigente == "false" %} selected{% endif %}>No</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Disponibilidad</label>
+                <select name="disponibilidad" class="form-select">
+                    <option value="">Todas las disponibilidades</option>
+                    <option value="DISPONIBLE"{% if request.GET.disponibilidad == "DISPONIBLE" %} selected{% endif %}>Disponible</option>
+                    <option value="ASIGNADO"{% if request.GET.disponibilidad == "ASIGNADO" %} selected{% endif %}>Asignado</option>
+                    <option value="EN_DESPACHO"{% if request.GET.disponibilidad == "EN_DESPACHO" %} selected{% endif %}>En Despacho</option>
+                    <option value="EN_DESCANSO"{% if request.GET.disponibilidad == "EN_DESCANSO" %} selected{% endif %}>En Descanso</option>
+                    <option value="CON_LICENCIA"{% if request.GET.disponibilidad == "CON_LICENCIA" %} selected{% endif %}>Con Licencia</option>
+                    <option value="INACTIVO"{% if request.GET.disponibilidad == "INACTIVO" %} selected{% endif %}>Inactivo</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Posesión de Moto</label>
+                <select name="posesion_moto" class="form-select">
+                    <option value="">¿Tiene Moto?</option>
+                    <option value="SIN_MOTO"{% if request.GET.posesion_moto == "SIN_MOTO" %} selected{% endif %}>Sin Moto</option>
+                    <option value="CON_MOTO"{% if request.GET.posesion_moto == "CON_MOTO" %} selected{% endif %}>Con Moto</option>
+                </select>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="bi bi-search"></i> Filtrar
+                </button>
+                <a href="{% url 'motorista_listar' %}" class="btn btn-secondary btn-sm">
+                    <i class="bi bi-x-circle"></i> Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="card">
     <div class="table-responsive">
         <table class="table table-hover mb-0">
             <thead>
                 <tr>
+                    <th>ID</th>
                     <th>Usuario</th>
+                    <th>Apellido Paterno</th>
+                    <th>Apellido Materno</th>
                     <th>RUT</th>
                     <th>Licencia Vigente</th>
+                    <th>Disponibilidad</th>
+                    <th>Posesión de Moto</th>
                     {% if puede_editar %}<th>Acciones</th>{% endif %}
                 </tr>
             </thead>
             <tbody>
-                {% for m in page_obj %}
+                {% for motorista in page_obj %}
                 <tr>
-                    <td>{{ m.usuario.get_full_name }} ({{ m.usuario.username }})</td>
-                    <td>{{ m.rut }}</td>
-                    <td>{% if m.licencia_vigente %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-danger">No</span>{% endif %}</td>
+                    <td>{{ motorista.identificador_unico }}</td>
+                    <td>{{ motorista.usuario.get_full_name }} ({{ motorista.usuario.username }} {{ motorista.usuario }})</td>
+                    <td>{{ motorista.apellido_paterno }}</td>
+                    <td>{{ motorista.apellido_materno }}</td>
+                    <td>{{ motorista.rut }}</td>
+                    <td>{% if motorista.licencia_vigente %}
+                        <span class="badge bg-success">Sí</span>
+                        {% else %}
+                        <span class="badge bg-danger">No</span>
+                        {% endif %}
+                    <td>
+                        {% if motorista.disponibilidad == 'DISPONIBLE' %}
+                            <span class="badge bg-success">{{ motorista.get_disponibilidad_display }}</span>
+                        {% elif motorista.disponibilidad == 'ASIGNADO' %}
+                            <span class="badge bg-primary">{{ motorista.get_disponibilidad_display }}</span>
+                        {% elif motorista.disponibilidad == 'EN_DESPACHO' %}
+                            <span class="badge bg-warning">{{ motorista.get_disponibilidad_display }}</span>
+                        {% elif motorista.disponibilidad == 'EN_DESCANSO' %}
+                            <span class="badge bg-danger">{{ motorista.get_disponibilidad_display }}</span>
+                        {% elif motorista.disponibilidad == 'CON_LICENCIA' %}
+                            <span class="badge bg-info">{{ motorista.get_disponibilidad_display }}</span>
+                        {% elif motorista.disponibilidad == 'INACTIVO' %}
+                            <span class="badge bg-dark">{{ motorista.get_disponibilidad_display }}</span>
+                        {% else %}
+                            {{ motorista.get_disponibilidad_display }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if motorista.posesion_moto == 'SIN_MOTO' %}
+                            <span class="badge bg-success">{{ motorista.get_posesion_moto_display }}</span>
+                        {% elif motorista.posesion_moto == 'CON_MOTO' %}
+                            <span class="badge bg-primary">{{ motorista.get_posesion_moto_display }}</span>
+                        {% else %}
+                            {{ motorista.get_posesion_moto_display }}
+                        {% endif %}
+                    </td>
                     {% if puede_editar %}
                     <td>
-                        <a href="{% url 'motorista_editar' m.pk %}" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
-                        <a href="{% url 'motorista_eliminar' m.pk %}" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
+                        <a href="{% url 'motorista_editar' motorista.pk %}" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
+                        <a href="{% url 'motorista_eliminar' motorista.pk %}" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
+                        <a href="{% url 'motorista_detalle' motorista.pk %}" class="btn btn-sm btn-primary"><i class="bi bi-journal-text"></i></a>
                     </td>
                     {% endif %}
                 </tr>
                 {% empty %}
-                <tr><td colspan="4" class="text-center">No hay motoristas registrados.</td></tr>
+                <tr><td colspan="{% if puede_editar %}9{% else %}9{% endif %}" class="text-center">No hay motoristas registrados.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
 
+<!-- Paginación -->
 {% if is_paginated %}
 <nav aria-label="pagination">
   <ul class="pagination mt-3">

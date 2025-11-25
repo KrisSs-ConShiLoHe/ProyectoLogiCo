@@ -3,39 +3,34 @@
 {% block title %}{{ titulo }} - LogiCo{% endblock %}
 
 {% block content %}
-<h1 class="page-title">{{ titulo }}</h1>
+<h1 class="page-title">
+    {{ titulo }}
+</h1>
 
-<div class="card">
-    <div class="card-body">
-        <form method="post" novalidate>
-            {% csrf_token %}
-            
-            {% for field in form %}
-            <div class="mb-3">
-                {{ field.label_tag }}
-                {{ field }}
-                {% if field.errors %}
-                <div class="invalid-feedback d-block">
-                    {% for error in field.errors %}
-                    <p>{{ error }}</p>
-                    {% endfor %}
-                </div>
-                {% endif %}
-                {% if field.help_text %}
-                <small class="form-text text-muted d-block">{{ field.help_text|safe }}</small>
-                {% endif %}
-            </div>
-            {% endfor %}
-            
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check-circle"></i> Guardar
-                </button>
-                <a href="{% url 'farmacia_listar' %}" class="btn btn-secondary">
-                    <i class="bi bi-x-circle"></i> Cancelar
-                </a>
-            </div>
-        </form>
-    </div>
+<div class="card p-4">
+    <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        {% if farmacia.imagen %}
+            <img src="{{ farmacia.imagen.url }}" alt="Foto de Farmacia" />
+        {% endif %}
+        {% for field in form %}
+
+        <div class="mb-3">
+            <label class="form-label"></label>{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+            {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
+        </div>
+        {% endfor %}
+        
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle"></i> Guardar
+            </button>
+            <a href="{% url 'farmacia_listar' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle"></i> Cancelar
+            </a>
+        </div>
+    </form>
 </div>
 {% endblock %}

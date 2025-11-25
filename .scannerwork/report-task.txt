@@ -1,0 +1,6 @@
+projectKey=Proyecto_LogiCo_Version_01
+serverUrl=http://localhost:9000
+serverVersion=10.5.0.89998
+dashboardUrl=http://localhost:9000/dashboard?id=Proyecto_LogiCo_Version_01
+ceTaskId=1773932b-a61b-4142-babc-92393758ae5a
+ceTaskUrl=http://localhost:9000/api/ce/task?id=1773932b-a61b-4142-babc-92393758ae5a

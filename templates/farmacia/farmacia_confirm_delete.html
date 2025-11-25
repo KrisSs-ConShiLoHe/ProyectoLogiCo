@@ -14,10 +14,17 @@
         <p>¿Estás seguro de que deseas eliminar la siguiente farmacia?</p>
         
         <div class="alert alert-light">
+            <strong>ID Único:</strong> {{ farmacia.identificador_unico }}<br>
             <strong>Nombre:</strong> {{ farmacia.nombre }}<br>
+            <strong>Código Externo:</strong> {{ farmacia.codigo_externo }}<br>
             <strong>Región:</strong> {{ farmacia.region }}<br>
             <strong>Comuna:</strong> {{ farmacia.comuna }}<br>
-            <strong>Dirección:</strong> {{ farmacia.direccion }}
+            <strong>Dirección:</strong> {{ farmacia.direccion }}<br>
+            <strong>Teléfono:</strong> {{ farmacia.telefono }}<br>
+            <strong>Correo:</strong> {{ farmacia.correo }}<br>
+            <strong>Horario de recepción (inicio):</strong> {{ farmacia.horario_recepcion_inicio }}<br>
+            <strong>Horario de recepción (final):</strong> {{ farmacia.horario_recepcion_fin }}<br>
+            <strong>Días operativos:</strong> {{ farmacia.dias_operativos }}<br>
         </div>
         
         <form method="post">

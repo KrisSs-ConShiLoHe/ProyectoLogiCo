@@ -4,148 +4,166 @@
 
 {% block content %}
 <div class="page-title d-flex justify-content-between align-items-center">
-    <h1><i class="bi bi-box-seam"></i> Despachos</h1>
-    {% if puede_crear %}
-    <a href="{% url 'despacho_crear' %}" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> Nuevo Despacho
-    </a>
-    {% endif %}
+  <h1><i class="bi bi-box-seam"></i> Despachos</h1>
+  {% if puede_crear %}
+  <a href="{% url 'despacho_crear' %}" class="btn btn-primary">
+    <i class="bi bi-plus-circle"></i> Nuevo Despacho
+  </a>
+  {% endif %}
 </div>
 
 <!-- Filtros -->
 <div class="card mb-3">
-    <div class="card-body">
-        <form method="get" class="row g-3">
-            <div class="col-md-3">
-                <label class="form-label">Estado</label>
-                <select name="estado" class="form-select">
-                    <option value="">-- Todos --</option>
-                    {% for code, label in estados %}
-                    <option value="{{ code }}" {% if request.GET.estado == code %}selected{% endif %}>
-                        {{ label }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <div class="col-md-3">
-                <label class="form-label">Tipo</label>
-                <select name="tipo" class="form-select">
-                    <option value="">-- Todos --</option>
-                    {% for code, label in tipos %}
-                    <option value="{{ code }}" {% if request.GET.tipo == code %}selected{% endif %}>
-                        {{ label }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <div class="col-md-3">
-                <label class="form-label">Desde</label>
-                <input type="date" name="fecha_desde" class="form-control" value="{{ request.GET.fecha_desde }}">
-            </div>
-            
-            <div class="col-md-3">
-                <label class="form-label">Hasta</label>
-                <input type="date" name="fecha_hasta" class="form-control" value="{{ request.GET.fecha_hasta }}">
-            </div>
-            
-            <div class="col-12">
-                <button type="submit" class="btn btn-primary btn-sm">
-                    <i class="bi bi-search"></i> Filtrar
-                </button>
-                <a href="{% url 'despacho_listar' %}" class="btn btn-secondary btn-sm">
-                    <i class="bi bi-x-circle"></i> Limpiar
-                </a>
-            </div>
-        </form>
-    </div>
+  <div class="card-body">
+    <form method="get" class="row g-3">
+      <div class="col-md-2">
+        <label class="form-label">ID Único</label>
+        <input type="text" name="identificador_unico" class="form-control" value="{{ request.GET.identificador_unico }}" placeholder="ID despacho">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">ID único</label>
+        <input type="text" name="id_farmacia" value="{{ request.GET.id_farmacia }}" class="form-control" placeholder="ID único">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Farmacia</label>
+        <input type="text" name="farmacia" class="form-control" value="{{ request.GET.farmacia }}" placeholder="Nombre farmacia">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">ID único</label>
+        <input type="text" name="id_motorista" value="{{ request.GET.id_motorista }}" class="form-control" placeholder="ID único">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Motorista</label>
+        <input type="text" name="motorista" class="form-control" value="{{ request.GET.motorista }}" placeholder="Nombre o apellido">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Estado</label>
+        <select name="estado" class="form-select">
+            <option value="">Todos los estados</option>
+            <option value="PENDIENTE"{% if request.GET.estado == "PENDIENTE" %} selected{% endif %}>Pendiente</option>
+            <option value="EN_RUTA"{% if request.GET.estado == "EN_RUTA" %} selected{% endif %}>En Ruta</option>
+            <option value="ENTREGADO"{% if request.GET.estado == "ENTREGADO" %} selected{% endif %}>Entregado</option>
+            <option value="INCIDENCIA"{% if request.GET.estado == "INCIDENCIA" %} selected{% endif %}>Incidencia</option>
+            <option value="ANULADO"{% if request.GET.estado == "ANULADO" %} selected{% endif %}>Anulado</option>
+            <option value="REENVIO"{% if request.GET.estado == "REENVIO" %} selected{% endif %}>Reenvio</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Tipo</label>
+        <select name="tipo_movimiento" class="form-select">
+            <option value="">Todos los movimientos</option>
+            <option value="DIRECTO"{% if request.GET.tipo_movimiento == "DIRECTO" %} selected{% endif %}>Directo</option>
+            <option value="CON_RECETA"{% if request.GET.tipo_movimiento == "CON_RECETA" %} selected{% endif %}>Con Receta</option>
+            <option value="CON_TRASLADO"{% if request.GET.tipo_movimiento == "CON_TRASLADO" %} selected{% endif %}>Con Traslado</option>
+            <option value="REENVIO"{% if request.GET.tipo_movimiento == "REENVIO" %} selected{% endif %}>Reenvio</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Desde</label>
+        <input type="date" name="fecha_desde" class="form-control" value="{{ request.GET.fecha_desde }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Hasta</label>
+        <input type="date" name="fecha_hasta" class="form-control" value="{{ request.GET.fecha_hasta }}">
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary btn-sm">
+            <i class="bi bi-search"></i> Filtrar
+        </button>
+        <a href="{% url 'despacho_listar' %}" class="btn btn-secondary btn-sm">
+            <i class="bi bi-x-circle"></i> Limpiar
+        </a>
+      </div>
+    </form>
+  </div>
 </div>
 
 <div class="card">
-    <div class="table-responsive">
-        <table class="table table-hover mb-0">
-            <thead>
-                <tr>
-                    <th>ID Pedido</th>
-                    <th>Tipo</th>
-                    <th>Farmacia</th>
-                    <th>Motorista</th>
-                    <th>Estado</th>
-                    <th>Fecha Creación</th>
-                    {% if puede_cambiar_estado %}
-                    <th>Acciones</th>
-                    {% endif %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for despacho in page_obj %}
-                <tr>
-                    <td><strong>{{ despacho.id_pedido_externo }}</strong></td>
-                    <td>{{ despacho.get_tipo_movimiento_display }}</td>
-                    <td>{{ despacho.farmacia_origen.nombre }}</td>
-                    <td>{{ despacho.motorista_asignado.usuario.get_full_name }}</td>
-                    <td>
-                        <span class="badge 
-                            {% if despacho.estado == 'PENDIENTE' %}bg-warning{% endif %}
-                            {% if despacho.estado == 'EN_RUTA' %}bg-info{% endif %}
-                            {% if despacho.estado == 'ENTREGADO' %}bg-success{% endif %}
-                            {% if despacho.estado == 'ANULADO' %}bg-danger{% endif %}
-                            {% if despacho.estado == 'INCIDENCIA' %}bg-danger{% endif %}
-                        ">
-                            {{ despacho.get_estado_display }}
-                        </span>
-                    </td>
-                    <td>{{ despacho.fecha_hora_creacion|date:"d/m/Y H:i" }}</td>
-                    {% if puede_cambiar_estado %}
-                    <td>
-                        <a href="{% url 'despacho_editar' despacho.pk %}" class="btn btn-sm btn-warning" title="Editar">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-                        <a href="{% url 'despacho_anular' despacho.pk %}" class="btn btn-sm btn-danger" title="Anular">
-                            <i class="bi bi-x-circle"></i>
-                        </a>
-                    </td>
-                    {% endif %}
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="{% if puede_cambiar_estado %}7{% else %}6{% endif %}" class="text-center text-muted">
-                        No hay despachos registrados
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>ID</th>
+          <th>Farmacia</th>
+          <th>ID</th>
+          <th>Motorista</th>
+          <th>Estado</th>
+          <th>Tipo de Movimiento</th>
+          <th>Fecha Creación</th>
+          {% if puede_cambiar_estado %}
+          <th>Acciones</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for despacho in page_obj %}
+        <tr>
+          <td>{{ despacho.identificador_unico }}</td>
+          <td>{{ despacho.farmacia_origen.identificador_unico }}</td>
+          <td>{{ despacho.farmacia_origen }}</td>
+          <td>{{ despacho.motorista_asignado.identificador_unico }}</td>
+          <td>{{ despacho.motorista_asignado }}</td>
+          <td>
+            {% if despacho.estado == 'PENDIENTE' %}
+              <span class="badge bg-success">{{ despacho.get_estado_display }}</span>
+            {% elif despacho.estado == 'EN_RUTA' %}
+              <span class="badge bg-warning">{{ despacho.get_estado_display }}</span>
+            {% elif despacho.estado == 'ENTREGADO' %}
+              <span class="badge bg-danger">{{ despacho.get_estado_display }}</span>
+            {% elif despacho.estado == 'INCIDENCIA' %}
+              <span class="badge bg-info">{{ despacho.get_estado_display }}</span>
+            {% elif despacho.estado == 'ANULADO' %}
+              <span class="badge bg-info">{{ despacho.get_estado_display }}</span>
+            {% elif despacho.estado == 'REENVIO' %}
+              <span class="badge bg-info">{{ despacho.get_estado_display }}</span>
+            {% else %}
+              {{ despacho.get_estado_display }}
+            {% endif %}
+          </td>
+          <td>
+            {% if despacho.tipo_movimiento == 'DIRECTO' %}
+              <span class="badge bg-success">{{ despacho.get_tipo_movimiento_display }}</span>
+            {% elif despacho.tipo_movimiento == 'CON_RECETA' %}
+              <span class="badge bg-success">{{ despacho.get_tipo_movimiento_display }}</span>
+            {% elif despacho.tipo_movimiento == 'CON_TRASLADO' %}
+              <span class="badge bg-success">{{ despacho.get_tipo_movimiento_display }}</span>
+            {% elif despacho.tipo_movimiento == 'REENVIO' %}
+              <span class="badge bg-success">{{ despacho.get_tipo_movimiento_display }}</span>
+            {% else %}
+              {{ despacho.get_tipo_movimiento_display }}
+            {% endif %}
+          </td>
+          <td>{{ despacho.fecha_hora_creacion|date:"d/m/Y H:i" }}</td>
+          {% if puede_cambiar_estado %}
+          <td>
+            <a href="{% url 'despacho_editar' despacho.pk %}" class="btn btn-sm btn-warning" title="Editar"><i class="bi bi-pencil"></i></a>
+            <a href="{% url 'despacho_anular' despacho.pk %}" class="btn btn-sm btn-danger" title="Anular"><i class="bi bi-x-circle"></i></a>
+            <a href="{% url 'despacho_detalle' despacho.pk %}" class="btn btn-sm btn-primary" title="Detalle"><i class="bi bi-journal-text"></i></a>
+          </td>
+          {% endif %}
+        </tr>
+        {% empty %}
+        <tr><td colspan="{% if puede_editar %}9{% else %}9{% endif %}" class="text-center">No hay despachos registrados.</td></tr>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <!-- Paginación -->
 {% if is_paginated %}
-<nav aria-label="Page navigation" class="mt-3">
-    <ul class="pagination justify-content-center">
-        {% if page_obj.has_previous %}
-        <li class="page-item">
-            <a class="page-link" href="?page=1">Primera</a>
-        </li>
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
-        </li>
-        {% endif %}
-
-        <li class="page-item active">
-            <span class="page-link">{{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
-        </li>
-
-        {% if page_obj.has_next %}
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a>
-        </li>
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Última</a>
-        </li>
-        {% endif %}
-    </ul>
+<nav aria-label="pagination">
+  <ul class="pagination mt-3">
+    {% if farmacias.has_previous %}
+    <li class="page-item"><a class="page-link" href="?page={{ farmacias.previous_page_number }}">Anterior</a></li>
+    {% endif %}
+    <li class="page-item active"><span class="page-link">{{ farmacias.number }}</span></li>
+    {% if farmacias.has_next %}
+    <li class="page-item"><a class="page-link" href="?page={{ farmacias.next_page_number }}">Siguiente</a></li>
+    {% endif %}
+  </ul>
 </nav>
 {% endif %}
 {% endblock %}

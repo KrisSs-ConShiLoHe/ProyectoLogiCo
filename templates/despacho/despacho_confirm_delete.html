@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Anular Despacho - LogiCo{% endblock %}
+
+{% block content %}
+<h1 class="page-title"><i class="bi bi-dash-circle"></i> Anular Despacho</h1>
+
+<div class="card border-danger">
+    <div class="card-body">
+        <div class="alert alert-danger">
+            <strong>Advertencia:</strong> Esta acción no se puede deshacer.
+        </div>
+
+        <p>¿Estás seguro de que deseas anular el siguiente despacho?</p>
+        
+        <div class="alert alert-warning">
+            <strong>Estado Actual:</strong> {{ despacho.estado|title }}<br>
+            <strong>Destino:</strong> {{ despacho.destino }}<br>
+            <strong>Creado en:</strong> {{ despacho.fecha_creacion|date:"d/m/Y H:i" }}<br>
+            <strong>Responsable:</strong> {{ despacho.creado_por.get_full_name }}<br>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-check-circle"></i> Sí, anular despacho
+                </button>
+                <a href="{% url 'despacho_listar' %}" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -12,45 +12,125 @@
     {% endif %}
 </div>
 
+<!-- Filtros -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-2">
+                <label class="form-label">ID único</label>
+                <input type="text" name="identificador_unico" value="{{ request.GET.identificador_unico }}" class="form-control" placeholder="ID único">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Región</label>
+                <select name="region" class="form-select">
+                    <option value="">Todas las regiones</option>
+                    <option value="REGIÓN DE ARICA Y PARINACOTA"{% if request.GET.region == "REGIÓN DE ARICA Y PARINACOTA" %} selected{% endif %}>Arica y Parinacota</option>
+                    <option value="REGIÓN DE TARAPACÁ"{% if request.GET.region == "REGIÓN DE TARAPACÁ" %} selected{% endif %}>Tarapacá</option>
+                    <option value="REGIÓN DE ANTOFAGASTA"{% if request.GET.region == "REGIÓN DE ANTOFAGASTA" %} selected{% endif %}>Antofagasta</option>
+                    <option value="REGIÓN DE ATACAMA"{% if request.GET.region == "REGIÓN DE ATACAMA" %} selected{% endif %}>Atacama</option>
+                    <option value="REGIÓN DE COQUIMBO"{% if request.GET.region == "REGIÓN DE COQUIMBO" %} selected{% endif %}>Coquimbo</option>
+                    <option value="REGIÓN DE VALPARAÍSO"{% if request.GET.region == "REGIÓN DE VALPARAÍSO" %} selected{% endif %}>Valparaíso</option>
+                    <option value="REGIÓN METROPOLITANA DE SANTIAGO"{% if request.GET.region == "REGIÓN METROPOLITANA DE SANTIAGO" %} selected{% endif %}>Metropolitana de Santiago</option>
+                    <option value="REGIÓN DE O HIGGINS"{% if request.GET.region == "REGIÓN DE O HIGGINS" %} selected{% endif %}>O Higgins</option>
+                    <option value="REGIÓN DEL MAULE"{% if request.GET.region == "REGIÓN DEL MAULE" %} selected{% endif %}>Maule</option>
+                    <option value="REGIÓN DE ÑUBLE"{% if request.GET.region == "REGIÓN DE ÑUBLE" %} selected{% endif %}>Ñuble</option>
+                    <option value="REGIÓN DEL BIOBÍO"{% if request.GET.region == "REGIÓN DEL BIOBÍO" %} selected{% endif %}>Biobío</option>
+                    <option value="REGIÓN DE LA ARAUCANÍA"{% if request.GET.region == "REGIÓN DE ARAUCANÍA" %} selected{% endif %}>La Araucanía</option>
+                    <option value="REGIÓN DE LOS RÍOS"{% if request.GET.region == "REGIÓN DE LOS RÍOS" %} selected{% endif %}>Los Ríos</option>
+                    <option value="REGIÓN DE LOS LAGOS"{% if request.GET.region == "REGIÓN DE LOS LAGOS" %} selected{% endif %}>Los Lagos</option>
+                    <option value="REGIÓN DE AYSÉN DEL GENERAL CARLOS IBÁÑEZ DEL CAMPO"{% if request.GET.region == "REGIÓN DE AYSÉN DEL GENERAL CARLOS IBÁÑEZ DEL CAMPO" %} selected{% endif %}>Aysén del General Carlos Ibáñez del Campo</option>
+                    <option value="REGIÓN DE MAGALLANES Y LA ANTÁRTICA CHILENA"{% if request.GET.region == "REGIÓN DE MAGALLANES Y LA ANTÁRTICA CHILENA" %} selected{% endif %}>Magallanes y la Antártica Chilena</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Comuna</label>
+                <input type="text" name="comuna" value="{{ request.GET.comuna }}" class="form-control" placeholder="Comuna">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Horario Inicio</label>
+                <input type="text" name="horario_recepcion_inicio" value="{{ request.GET.horario_recepcion_inicio }}" class="form-control" placeholder="Horario Inicio">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Horario Final</label>
+                <input type="text" name="horario_recepcion_fin" value="{{ request.GET.horario_recepcion_fin }}" class="form-control" placeholder="Horario Final">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Días</label>
+                <select name="dias_operativos" class="form-select">
+                    <option value="">Todos la Semana</option>
+                    <option value="LUN"{% if request.GET.dias_operativos == "LUN" %} selected{% endif %}>Lunes</option>
+                    <option value="MAR"{% if request.GET.dias_operativos == "MAR" %} selected{% endif %}>Martes</option>
+                    <option value="MIE"{% if request.GET.dias_operativos == "MIE" %} selected{% endif %}>Miércoles</option>
+                    <option value="JUE"{% if request.GET.dias_operativos == "JUE" %} selected{% endif %}>Jueves</option>
+                    <option value="VIE"{% if request.GET.dias_operativos == "VIE" %} selected{% endif %}>Viernes</option>
+                    <option value="SAB"{% if request.GET.dias_operativos == "SAB" %} selected{% endif %}>Sábado</option>
+                    <option value="DOM"{% if request.GET.dias_operativos == "DOM" %} selected{% endif %}>Domingo</option>
+                </select>
+            </div>
+            
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="bi bi-search"></i> Filtrar
+                </button>
+                <a href="{% url 'farmacia_listar' %}" class="btn btn-secondary btn-sm">
+                    <i class="bi bi-x-circle"></i> Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="card">
     <div class="table-responsive">
         <table class="table table-hover mb-0">
             <thead>
                 <tr>
+                    <th>ID</th>
                     <th>Nombre</th>
                     <th>Región</th>
                     <th>Comuna</th>
                     <th>Dirección</th>
-                    <th>Código Externo</th>
+                    <th>Horario Inicio</th>
+                    <th>Horario Final</th>
+                    <th>Días</th>
                     {% if puede_editar %}
                     <th>Acciones</th>
                     {% endif %}
                 </tr>
             </thead>
             <tbody>
-                {% for farmacia in page_obj %}
+                {% for farmacia in farmacias %}
                 <tr>
+                    <td>{{ farmacia.identificador_unico }}</td>
                     <td>{{ farmacia.nombre }}</td>
-                    <td>{{ farmacia.region }}</td>
+                    <td>
+                        {% if farmacia.region %}
+                            <span class="badge bg-info">{{ farmacia.get_region_display }}</span>
+                        {% else %}
+                            <span class="text-muted">Sin región</span>
+                        {% endif %}
+                    </td>
                     <td>{{ farmacia.comuna }}</td>
                     <td>{{ farmacia.direccion }}</td>
-                    <td><span class="badge bg-secondary">{{ farmacia.codigo_externo }}</span></td>
+                    <td>{{ farmacia.horario_recepcion_inicio }}</td>
+                    <td>{{ farmacia.horario_recepcion_fin }}</td>
+                    <td>
+                        {% for label in farmacia.get_dias_operativos_labels %}
+                            <span class="badge bg-info">{{ label }}</span>
+                        {% empty %}
+                            <span class="text-muted">Sin días</span>
+                        {% endfor %}
+                    </td>
                     {% if puede_editar %}
                     <td>
-                        <a href="{% url 'farmacia_editar' farmacia.pk %}" class="btn btn-sm btn-warning">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-                        <a href="{% url 'farmacia_eliminar' farmacia.pk %}" class="btn btn-sm btn-danger">
-                            <i class="bi bi-trash"></i>
-                        </a>
+                        <a href="{% url 'farmacia_editar' farmacia.pk %}" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
+                        <a href="{% url 'farmacia_eliminar' farmacia.pk %}" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
+                        <a href="{% url 'farmacia_detalle' farmacia.pk %}" class="btn btn-sm btn-primary"><i class="bi bi-journal-text"></i></a>
                     </td>
                     {% endif %}
                 </tr>
                 {% empty %}
-                <tr>
-                    <td colspan="{% if puede_editar %}7{% else %}6{% endif %}" class="text-center text-muted">
-                        No hay farmacias registradas
-                    </td>
+                <tr><td colspan="{% if puede_editar %}9{% else %}9{% endif %}" class="text-center">No hay farmacias registrados.</td></tr>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -60,30 +140,16 @@
 
 <!-- Paginación -->
 {% if is_paginated %}
-<nav aria-label="Page navigation">
-    <ul class="pagination justify-content-center">
-        {% if page_obj.has_previous %}
-        <li class="page-item">
-            <a class="page-link" href="?page=1">Primera</a>
-        </li>
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
-        </li>
-        {% endif %}
-
-        <li class="page-item active">
-            <span class="page-link">{{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
-        </li>
-
-        {% if page_obj.has_next %}
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a>
-        </li>
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Última</a>
-        </li>
-        {% endif %}
-    </ul>
+<nav aria-label="pagination">
+  <ul class="pagination mt-3">
+    {% if farmacias.has_previous %}
+    <li class="page-item"><a class="page-link" href="?page={{ farmacias.previous_page_number }}">Anterior</a></li>
+    {% endif %}
+    <li class="page-item active"><span class="page-link">{{ farmacias.number }}</span></li>
+    {% if farmacias.has_next %}
+    <li class="page-item"><a class="page-link" href="?page={{ farmacias.next_page_number }}">Siguiente</a></li>
+    {% endif %}
+  </ul>
 </nav>
 {% endif %}
 {% endblock %}

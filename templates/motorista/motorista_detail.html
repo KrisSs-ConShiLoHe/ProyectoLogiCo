@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle Motorista - LogiCo{% endblock %}
+
+{% block content %}
+<h1 class="page-title"><i class="bi bi-person-badge"></i> Detalle Motorista</h1>
+
+<div class="card mb-3">
+    <div class="row g-0">
+        {% if motorista.imagen %}
+        <div class="col-md-4 d-flex align-items-center justify-content-center">
+            <a>-----------------------------------------------------------------------------------------</a>
+            <br>
+            <img src="{{ motorista.imagen.url }}" class="img-fluid rounded" alt="Foto Motorista" style="max-width: 220px;">
+            <br>
+            <a>-----------------------------------------------------------------------------------------</a>
+        </div>
+        {% endif %}
+        <div class="col-md-{{ motorista.imagen|yesno:"8,12" }}">
+            <div class="card-body">
+                <h4 class="card-title mb-2">{{ motorista.nombre }} {{ motorista.apellido_paterno }} {{ motorista.apellido_materno }}</h4>
+                <ul class="list-group list-group-flush mb-3">
+                    <li class="list-group-item"><strong>ID Único:</strong> <span class="badge bg-primary">{{ motorista.identificador_unico }}</span></li>
+                    <li class="list-group-item"><strong>RUT:</strong> {{ motorista.rut }}</li>
+                    <li class="list-group-item"><strong>Correo:</strong> {{ motorista.correo }}</li>
+                    <li class="list-group-item"><strong>Teléfono:</strong> {{ motorista.telefono }}</li>
+                    <li class="list-group-item"><strong>Domicilio:</strong> {{ motorista.domicilio }}</li>
+                    <li class="list-group-item"><strong>Emergencia (Nombre):</strong> {{ motorista.emergencia_nombre }}</li>
+                    <li class="list-group-item"><strong>Emergencia (Teléfono):</strong> {{ motorista.emergencia_telefono }}</li>
+                    <li class="list-group-item"><strong>Licencia:</strong> {{ motorista.licencia_tipo }}</li>
+                    <li class="list-group-item"><strong>¿Licencia vigente?:</strong>
+                        {% if motorista.licencia_vigente %}
+                        <span class="badge bg-success">Sí</span>
+                        {% else %}
+                        <span class="badge bg-danger">No</span>
+                        {% endif %}
+                    </li>
+                    <li class="list-group-item"><strong>Disponibilidad:</strong> <span class="badge bg-info">{{ motorista.get_disponibilidad_display }}</span></li>
+                    <li class="list-group-item"><strong>Posesión de Moto:</strong> <span class="badge bg-primary">{{ motorista.get_posesion_moto_display }}</span></li>
+                    <li class="list-group-item"><strong>Activo:</strong> {% if motorista.activo %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-danger">No</span>{% endif %}</li>
+                </ul>
+                <div class="d-flex gap-2">
+                    {% if puede_editar %}
+                    <a href="{% url 'motorista_editar' motorista.pk %}" class="btn btn-warning">
+                        <i class="bi bi-pencil"></i> Editar
+                    </a>
+                    <a href="{% url 'motorista_eliminar' motorista.pk %}" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Eliminar
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'motorista_listar' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Volver al listado
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

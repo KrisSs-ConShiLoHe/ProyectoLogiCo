@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar Moto - LogiCo{% endblock %}
+
+{% block content %}
+<h1 class="page-title"><i class="bi bi-trash"></i> Eliminar Moto</h1>
+
+<div class="card border-danger">
+    <div class="card-body">
+        <div class="alert alert-danger">
+            <strong>Advertencia:</strong> Esta acción no se puede deshacer.
+        </div>
+        
+        <p>¿Estás seguro de que deseas eliminar la siguiente moto?</p>
+        
+        <div class="alert alert-light">
+            <strong>Patente:</strong> {{ moto.patente }}<br>
+            <strong>Marca:</strong> {{ moto.marca }}<br>
+            <strong>Modelo:</strong> {{ moto.modelo }}<br>
+            <strong>Año de fabricación:</strong> {{ moto.anio_fabricacion }}<br>
+            <strong>Color:</strong> {{ moto.color }}
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-check-circle"></i> Sí, eliminar
+                </button>
+                <a href="{% url 'moto_listar' %}" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

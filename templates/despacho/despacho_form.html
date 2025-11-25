@@ -3,44 +3,162 @@
 {% block title %}{{ titulo }} - LogiCo{% endblock %}
 
 {% block content %}
-<h1 class="page-title">{{ titulo }}</h1>
+<h1 class="page-title">
+    {{ titulo }}
+</h1>
 
-<div class="card">
-    <div class="card-body">
-        <form method="post" novalidate>
-            {% csrf_token %}
-            
-            {% for field in form %}
-            <div class="mb-3">
-                {{ field.label_tag }}
-                {{ field }}
-                {% if field.errors %}
-                <div class="invalid-feedback d-block">
-                    {% for error in field.errors %}
-                    <p>{{ error }}</p>
-                    {% endfor %}
-                </div>
-                {% endif %}
-            </div>
-            {% endfor %}
-            
-            {% if form.non_field_errors %}
-            <div class="alert alert-danger">
-                {% for error in form.non_field_errors %}
-                <p>{{ error }}</p>
-                {% endfor %}
-            </div>
-            {% endif %}
-            
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check-circle"></i> Guardar
-                </button>
-                <a href="{% url 'despacho_listar' %}" class="btn btn-secondary">
-                    <i class="bi bi-x-circle"></i> Cancelar
-                </a>
-            </div>
-        </form>
+<div class="card p-4">
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    {% if despacho.imagen %}
+      <img src="{{ despacho.imagen.url }}" alt="Foto de Despacho" />
+    {% endif %}
+    
+    {% for field in form %}
+      
+    {# Determine extra class from field widget attrs to add to wrapping div #}
+      {% with extra_class=field.field.widget.attrs.class %}
+      <div class="mb-3">
+        <label class="form-label"></label>{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+        {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
+      </div>
+      {% endwith %}
+    {% endfor %}
+
+    {# Campos de producto (siempre renderizados, pero ocultos por JS si no es DIRECTO) #}
+    {% if producto_form %}
+      {% for field in producto_form %}
+        <div class="mb-3">
+          <label class="form-label">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+          {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
+        </div>
+      {% endfor %}
+    {% endif %}
+    
+      
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-circle"></i> Guardar
+      </button>
+      <a href="{% url 'despacho_listar' %}" class="btn btn-secondary">
+          <i class="bi bi-x-circle"></i> Cancelar
+      </a>
     </div>
+  </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const farmaciaSelect = document.getElementById('id_farmacia_origen');
+  const motoristaSelect = document.getElementById('id_motorista_asignado');
+  
+  if (!farmaciaSelect || !motoristaSelect) return;
+  
+  farmaciaSelect.addEventListener('change', function() {
+    const farmaciaId = this.value;
+    if (farmaciaId) {
+      const url = `{% url 'motoristas_por_farmacia' %}`;  // Genera la URL correcta dinámicamente
+      fetch(`${url}?farmacia_id=${farmaciaId}`, {
+        method: 'GET',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Content-Type': 'application/json',
+        },
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        motoristaSelect.innerHTML = '<option value="">---------</option>';
+        
+        if (data.motoristas && data.motoristas.length > 0) {
+          data.motoristas.forEach(motorista => {
+            const option = document.createElement('option');
+            option.value = motorista.id;
+            option.textContent = motorista.text;
+            motoristaSelect.appendChild(option);
+          });
+        } else {
+          motoristaSelect.innerHTML = '<option value="">No hay motoristas asignados</option>';
+        }
+      })
+      .catch(error => {
+        console.error('Error en AJAX:', error);
+        motoristaSelect.innerHTML = '<option value="">Error al cargar motoristas</option>';
+      });
+    } else {
+      motoristaSelect.innerHTML = '<option value="">---------</option>';
+    }
+  });
+  
+  // Tu script existente para tipo_movimiento y estado
+  // ... (copia aquí)
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const tipoSelect = document.getElementById('id_tipo_movimiento');
+  const estadoSelect = document.getElementById('id_estado');
+  if (!tipoSelect || !estadoSelect) return;
+
+  const directoFields = document.querySelectorAll('.extra-producto');
+  const conRecetaFields = document.querySelectorAll('.extra-con-receta');
+  const trasladoFields = document.querySelectorAll('.extra-con-traslado');
+  const reenvioFields = document.querySelectorAll('.extra-reenvio');
+  const incidenciaFields = document.querySelectorAll('.extra-incidencia');
+  const incidenciaFechaHoraFields = document.querySelectorAll('.extra-incidencia');
+
+  function hideFields(fields) {
+    fields.forEach(f => {
+      const container = f.closest('.mb-3');
+      if (container) container.style.display = 'none';
+      else f.style.display = 'none';
+    });
+  }
+
+  function showFields(fields) {
+    fields.forEach(f => {
+      const container = f.closest('.mb-3');
+      if (container) container.style.display = '';
+      else f.style.display = '';
+    });
+  }
+
+  function onTipoChange() {
+    const val = tipoSelect.value;
+    hideFields(directoFields)
+    hideFields(conRecetaFields);
+    hideFields(trasladoFields);
+    hideFields(reenvioFields);
+    if (val === 'DIRECTO') showFields(directoFields);
+    else if (val === 'CON_RECETA') showFields(conRecetaFields);
+    else if (val === 'CON_TRASLADO') showFields(trasladoFields);
+    else if (val === 'REENVIO') showFields(reenvioFields);
+  }
+
+  function onEstadoChange() {
+    const val = estadoSelect.value;
+    hideFields(incidenciaFields);
+    hideFields(incidenciaFechaHoraFields);
+
+    if (val === 'INCIDENCIA') showFields(incidenciaFields);
+    else if (val === 'INCIDENCIA') showFields(incidenciaFechaHoraFields);
+  }
+
+  tipoSelect.addEventListener('change', onTipoChange);
+  estadoSelect.addEventListener('change', onEstadoChange);
+
+  onTipoChange();
+  onEstadoChange();
+});
+</script>
+
 {% endblock %}
