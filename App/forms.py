@@ -382,12 +382,6 @@ class DespachoEstadoForm(forms.ModelForm):
     # Puedes sobrescribir __init__ para mostrar/ocultar campos según tipo_movimiento
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Remove widget replacement with HiddenInput to preserve CSS classes for JS control of visibility.
-        # Let JS and CSS control dynamic visibility client-side.
-        # To handle initial display, users can rely on JS initialization or server-rendered CSS classes if needed.
-        # So do not replace widgets here.
-        # This is to avoid elements disappearing from the DOM visually breaking JS selectors.
-        # If needed, validation logic should be handled separately.
         pass
 
 # Agrega un pequeño formset para productos si quieres cargarlos en el mismo template al editar/crear.
