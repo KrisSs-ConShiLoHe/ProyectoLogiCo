@@ -97,7 +97,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for despacho in page_obj %}
+        {% for despacho in despachos %}
         <tr>
           <td>{{ despacho.identificador_unico }}</td>
           <td>{{ despacho.farmacia_origen.identificador_unico }}</td>
@@ -155,15 +155,15 @@
 <!-- Paginación -->
 {% if is_paginated %}
 <nav aria-label="pagination">
-  <ul class="pagination mt-3">
-    {% if farmacias.has_previous %}
-    <li class="page-item"><a class="page-link" href="?page={{ farmacias.previous_page_number }}">Anterior</a></li>
-    {% endif %}
-    <li class="page-item active"><span class="page-link">{{ farmacias.number }}</span></li>
-    {% if farmacias.has_next %}
-    <li class="page-item"><a class="page-link" href="?page={{ farmacias.next_page_number }}">Siguiente</a></li>
-    {% endif %}
-  </ul>
+    <ul class="pagination mt-3">
+        {% if despachos.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ despachos.previous_page_number }}">Anterior</a></li>
+        {% endif %}
+        <li class="page-item active"><span class="page-link">{{ despachos.number }}</span></li>
+        {% if despachos.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ despachos.next_page_number }}">Siguiente</a></li>
+        {% endif %}
+    </ul>
 </nav>
 {% endif %}
 {% endblock %}

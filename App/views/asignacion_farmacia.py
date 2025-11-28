@@ -6,6 +6,7 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.core.exceptions import ValidationError
 from ..models import AsignacionFarmacia, Motorista, Farmacia
 from ..forms import AsignacionFarmaciaForm
 from ..decorators import SupervisorOAdminMixin, RolRequiredMixin, LoginRequiredMixin
@@ -167,84 +168,102 @@ def listar_asignaciones_farmacia(request):
     elif activa == "false":
         qs = qs.filter(activa=False)
 
-    # --- PAGINACIÓN ---
-    paginator = Paginator(qs, 15)
-    page_obj = paginator.get_page(request.GET.get("page"))
+    # Paginación
+    paginator = Paginator(qs, 20)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
 
-    return render(
-        request,
-        "asignacion_farmacia/asignacion_farmacia_list.html",
-        {
-            "page_obj": page_obj,
-            "puede_crear": request.user.rol in ["ADMINISTRADOR", "SUPERVISOR"]
-        },
-    )
+    context = {
+        "a_f": page_obj,
+        "is_paginated": paginator.num_pages > 1,
+        "puede_crear": request.user.rol in ['ADMINISTRADOR', 'SUPERVISOR'],
+    }
+    return render(request, "asignacion_farmacia/asignacion_farmacia_list.html", context)
+
 
 
 def crear_asignacion_farmacia(request):
-    """
-    Crear una nueva asignación de farmacia.
-    """
-    if not request.user.is_authenticated:
-        return redirect('login')
+    """Crear una nueva asignación motorista-farmacia"""
     
     if request.user.rol not in ['ADMINISTRADOR', 'SUPERVISOR']:
-        messages.error(request, 'No tienes permiso para crear asignaciones de farmacia.')
+        messages.error(request, 'No tienes permiso para crear asignaciones.')
         return redirect('asignacion_farmacia_listar')
     
     if request.method == 'POST':
         form = AsignacionFarmaciaForm(request.POST)
+        
         if form.is_valid():
-            asignacion = form.save(commit=False)
-            asignacion.activa = True
-            asignacion.save()
-            messages.success(request, 'Asignación de farmacia creada exitosamente.')
-            return redirect('asignacion_farmacia_listar')
+            try:
+                asignacion = form.save(commit=False)
+                asignacion.activa = True
+                asignacion.save()  # Esto ejecuta el clean() y save() del modelo
+                messages.success(request, 'Asignación creada exitosamente.')
+                return redirect('asignacion_farmacia_listar')
+            except ValidationError as e:
+                # Mostrar errores de validación del modelo
+                for field, errors in e.message_dict.items():
+                    for error in errors:
+                        messages.error(request, error)
         else:
-            messages.error(request, 'Error al crear la asignación de farmacia.')
+            messages.error(request, 'Error al crear la asignación. Revise los campos.')
     else:
         form = AsignacionFarmaciaForm()
     
     return render(request, 'asignacion_farmacia/asignacion_farmacia_form.html', {
         'form': form,
-        'titulo': 'Crear Asignación de Farmacia'
+        'titulo': 'Crear Asignación a Farmacia'
     })
 
 
+
 def reemplazar_asignacion_farmacia(request, pk):
-    """
-    Reemplazar una asignación de farmacia.
-    """
-    if not request.user.is_authenticated:
-        return redirect('login')
+    """Reemplazar asignación de farmacia (cambiar motorista o farmacia)"""
     
     if request.user.rol not in ['ADMINISTRADOR', 'SUPERVISOR']:
-        messages.error(request, 'No tienes permiso para reemplazar asignaciones de farmacia.')
+        messages.error(request, 'No tienes permiso para modificar asignaciones.')
         return redirect('asignacion_farmacia_listar')
     
     asignacion = get_object_or_404(AsignacionFarmacia, pk=pk)
+    
+    if not asignacion.activa:
+        messages.warning(request, 'Esta asignación ya está inactiva.')
+        return redirect('asignacion_farmacia_listar')
+    
     if request.method == 'POST':
-        form = AsignacionFarmaciaForm(request.POST, asignacion_actual=asignacion)  # Sin instance, pero con asignacion_actual para querysets
+        form = AsignacionFarmaciaForm(request.POST)
+        
         if form.is_valid():
-            # Desactiva la actual (histórico)
-            asignacion.activa = False
-            asignacion.save()  # Esto guarda la asignación anterior como inactiva con fecha_desasignacion y libera recursos
-            # Crea nueva asignación manualmente con los datos del form
-            nueva = AsignacionFarmacia(
-                motorista=form.cleaned_data['motorista'],
-                farmacia=form.cleaned_data['farmacia'],
-                activa=True
-            )
-            nueva.save()  # Esto guarda la nueva asignación y maneja la lógica de desactivar otras y actualizar estados
-            messages.success(request, 'Asignación de farmacia reemplazada exitosamente.')
-            return redirect('asignacion_farmacia_listar')
+            try:
+                # Desactivar asignación actual
+                asignacion.activa = False
+                asignacion.save()
+                
+                # Crear nueva asignación
+                nueva_asignacion = AsignacionFarmacia(
+                    motorista=form.cleaned_data['motorista'],
+                    farmacia=form.cleaned_data['farmacia'],
+                    observaciones=form.cleaned_data.get('observaciones', ''),
+                    activa=True
+                )
+                nueva_asignacion.save()
+                
+                messages.success(request, 'Asignación reemplazada exitosamente.')
+                return redirect('asignacion_farmacia_listar')
+            except ValidationError as e:
+                # Reactivar la asignación original si falla
+                asignacion.activa = True
+                asignacion.save()
+                
+                for field, errors in e.message_dict.items():
+                    for error in errors:
+                        messages.error(request, error)
         else:
-            messages.error(request, 'Error al reemplazar la asignación de farmacia.')
+            messages.error(request, 'Error al reemplazar la asignación.')
     else:
-        form = AsignacionFarmaciaForm(instance=asignacion, asignacion_actual=asignacion)  # Con instance para valores iniciales y asignacion_actual para querysets
+        form = AsignacionFarmaciaForm(instance=asignacion)
     
     return render(request, 'asignacion_farmacia/asignacion_farmacia_form.html', {
         'form': form,
-        'titulo': 'Reemplazar Asignación de Farmacia',
+        'titulo': 'Reemplazar Asignación',
         'asignacion': asignacion
     })

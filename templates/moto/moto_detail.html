@@ -25,9 +25,17 @@
                     <li class="list-group-item"><strong>Año de fabricación:</strong> {{ moto.anio_fabricacion }}</li>
                     <li class="list-group-item"><strong>N° Chasis:</strong> {{ moto.numero_chasis }}</li>
                     <li class="list-group-item"><strong>N° Motor:</strong> {{ moto.numero_motor }}</li>
-                    <li class="list-group-item"><strong>Permiso vigente:</strong> {% if moto.permiso_circulacion_vigente %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-danger">No</span>{% endif %}</li>
-                    <li class="list-group-item"><strong>Revisión técnica al día:</strong> {% if moto.revision_tecnica_vigente %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-danger">No</span>{% endif %}</li>
+                    <li class="list-group-item"><strong>Dueño:</strong><span class="badge bg-info">{{ moto.get_dueño_display }}</span></li>
                     <li class="list-group-item"><strong>Estado:</strong><span class="badge bg-info">{{ moto.get_estado_display }}</span></li>
+                </ul>
+
+                <br><br>
+
+                <!-- Datos de Rendimiento -->
+                <h5>Datos de Rendimiento</h5>
+                <h7>Información vital para conocer la capacidad de la moto en detalle.</h7>
+                <br><br>
+                <ul class="list-group list-group-flush mb-3">
                     <li class="list-group-item"><strong>Consumo de combustible:</strong> {{ moto.consumo_combustible }} L/100km</li>
                     <li class="list-group-item"><strong>Capacidad de carga:</strong> {{ moto.capacidad_carga }} kg</li>
                     <li class="list-group-item"><strong>Velocidad promedio:</strong> {{ moto.velocidad_promedio }} km/h</li>
@@ -35,15 +43,83 @@
                     <li class="list-group-item"><strong>Aceleraciones rápidas:</strong> {{ moto.aceleraciones_rapidas }}</li>
                     <li class="list-group-item"><strong>Tiempo de inactividad:</strong> {{ moto.tiempo_inactividad_horas }} h</li>
                 </ul>
+
+                <br><br>
+
+                <!-- Documentacion de la Moto -->
+                {% if moto.documentacion %}
+                    <h5>Documentación de la Moto</h5>
+                    <h7>Información importante para conocer la documentación de la moto</h7>
+                    <br><br>
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item"><strong>Vencimiento Revisión Técnica:</strong> {{ moto.documentacion.revision_tecnica_vencimiento }}</li>
+                        <li class="list-group-item"><strong>Vencimiento Seguro SOAP:</strong> {{ moto.documentacion.seguro_soap_vencimiento }}</li>
+                        {% if moto.revision_tecnica_archivo %}
+                        <div class="col-md-4 d-flex align-items-center justify-content-center">
+                            <a>-----------------------------------------------------------------------------------------</a>
+                            <br>
+                            <img src="{{ moto.revision_tecnica_archivo.url }}" class="img-fluid rounded" alt="Foto Moto" style="max-width:220px;">
+                            <br>
+                            <a>-----------------------------------------------------------------------------------------</a>
+                        </div>
+                        {% endif %}
+                        {% if moto.seguro_soap_archivo %}
+                        <div class="col-md-4 d-flex align-items-center justify-content-center">
+                            <a>-----------------------------------------------------------------------------------------</a>
+                            <br>
+                            <img src="{{ moto.seguro_soap_archivo.url }}" class="img-fluid rounded" alt="Foto Moto" style="max-width:220px;">
+                            <br>
+                            <a>-----------------------------------------------------------------------------------------</a>
+                        </div>
+                        {% endif %}
+                        {% if moto.pago_multas_comprobante %}
+                        <div class="col-md-4 d-flex align-items-center justify-content-center">
+                            <a>-----------------------------------------------------------------------------------------</a>
+                            <br>
+                            <img src="{{ moto.pago_multas_comprobante.url }}" class="img-fluid rounded" alt="Foto Moto" style="max-width:220px;">
+                            <br>
+                            <a>-----------------------------------------------------------------------------------------</a>
+                        </div>
+                        {% endif %}
+                    </ul>
+                {% else %}
+                    <h5>No hay documentación registrada para esta moto.</h5>
+                {% endif %}
+
+                <br><br>
+
+                <!-- Permiso de Circulación de la Moto -->
+                {% if moto.permisos %}
+                    <h5>Permiso de Circulación de la Moto</h5>
+                    <h7>Información vital para conocer el permiso de circulación de la moto en detalle.</h7>
+                    <br><br>
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item"><strong>Año del Permiso:</strong> {{ perm.anio_permiso }}</li>
+                        <li class="list-group-item"><strong>Valor Tasación SII:</strong> {{ perm.valor_tasacion_SII }}</li>
+                        <li class="list-group-item"><strong>Código SII:</strong> {{ perm.codigo_SII }}</li>
+                        <li class="list-group-item"><strong>Tipo de Combustible:</strong> {{ perm.tipo_combustible }}</li>
+                        <li class="list-group-item"><strong>Cilindrada:</strong> {{ perm.cilindrada }}</li>
+                        <li class="list-group-item"><strong>Valor Neto Pago:</strong> {{ perm.valor_neto_pago }}</li>
+                        <li class="list-group-item"><strong>Valor Multa Pagado:</strong> {{ perm.valor_multa_pagado }}</li>
+                        <li class="list-group-item"><strong>Valor Pagado Total:</strong> {{ perm.valor_pagado_total }}</li>
+                        <li class="list-group-item"><strong>Fecha de Pago:</strong> {{ perm.fecha_pago }}</li>
+                        <li class="list-group-item"><strong>Forma de Pago:</strong> {{ perm.forma_pago }}</li>
+                    </ul>
+                {% else %}
+                    <h5>No hay permisos de circulación registrados para esta moto.</h5>
+                {% endif %}
+
+                <br><br>
                 
                 <!-- Historial de mantenimientos -->
                 {% if moto.mantenimientos.exists and moto.estado == 'EN_MANTENIMIENTO' %}
                     <h5>Historial de Mantenimiento</h5>
+                    <h7>Información importante para conocer la situación de mantenimiento de la moto</h7>
                     <ul class="list-group list-group-flush mb-3">
                         {% for mant in moto.mantenimientos.all %}
                         <li class="list-group-item"><strong>Tipo de Servicio:</strong>{{ mant.tipo_servicio }}</li>
                         <li class="list-group-item"><strong>Descripción del Mantenimiento:</strong>{{ mant.descripcion }}</li>
-                        <li class="list-group-item"><strong>Fecha de Nacimiento:</strong>{{ mant.fecha_mantenimiento }}</li>
+                        <li class="list-group-item"><strong>Fecha del Mantenimiento:</strong>{{ mant.fecha_mantenimiento }}</li>
                         <li class="list-group-item"><strong>Kilometraje:</strong>{{ mant.kilometraje }}</li>
                         <li class="list-group-item"><strong>Próximo Mantenimiento:</strong>{{ mant.proximo_mantenimiento }}</li>
                         {% endfor %}

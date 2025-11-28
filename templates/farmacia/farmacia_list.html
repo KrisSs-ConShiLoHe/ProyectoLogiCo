@@ -43,6 +43,10 @@
                 </select>
             </div>
             <div class="col-md-2">
+                <label class="form-label">Provincia</label>
+                <input type="text" name="provincia" value="{{ request.GET.provincia }}" class="form-control" placeholder="Provincia">
+            </div>
+            <div class="col-md-2">
                 <label class="form-label">Comuna</label>
                 <input type="text" name="comuna" value="{{ request.GET.comuna }}" class="form-control" placeholder="Comuna">
             </div>
@@ -88,6 +92,7 @@
                     <th>ID</th>
                     <th>Nombre</th>
                     <th>Región</th>
+                    <th>Provincia</th>
                     <th>Comuna</th>
                     <th>Dirección</th>
                     <th>Horario Inicio</th>
@@ -110,6 +115,7 @@
                             <span class="text-muted">Sin región</span>
                         {% endif %}
                     </td>
+                    <td>{{ farmacia.provincia }}</td>
                     <td>{{ farmacia.comuna }}</td>
                     <td>{{ farmacia.direccion }}</td>
                     <td>{{ farmacia.horario_recepcion_inicio }}</td>
@@ -141,15 +147,15 @@
 <!-- Paginación -->
 {% if is_paginated %}
 <nav aria-label="pagination">
-  <ul class="pagination mt-3">
-    {% if farmacias.has_previous %}
-    <li class="page-item"><a class="page-link" href="?page={{ farmacias.previous_page_number }}">Anterior</a></li>
-    {% endif %}
-    <li class="page-item active"><span class="page-link">{{ farmacias.number }}</span></li>
-    {% if farmacias.has_next %}
-    <li class="page-item"><a class="page-link" href="?page={{ farmacias.next_page_number }}">Siguiente</a></li>
-    {% endif %}
-  </ul>
+    <ul class="pagination mt-3">
+        {% if farmacias.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ farmacias.previous_page_number }}">Anterior</a></li>
+        {% endif %}
+        <li class="page-item active"><span class="page-link">{{ farmacias.number }}</span></li>
+        {% if farmacias.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ farmacias.next_page_number }}">Siguiente</a></li>
+        {% endif %}
+    </ul>
 </nav>
 {% endif %}
 {% endblock %}

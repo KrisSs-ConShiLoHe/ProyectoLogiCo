@@ -63,8 +63,7 @@ urlpatterns = [
     path('despachos/<int:pk>/editar/', despacho.editar_despacho, name='despacho_editar'),
     path('despachos/<int:pk>/anular/', despacho.anular_despacho, name='despacho_anular'),
     path('despachos/<int:pk>/', despacho.DespachoDetailView.as_view(), name='despacho_detalle'),
-    path('despachos/<int:pk>/cambiar_estado/', despacho.cambiar_estado_despacho, name='despacho_cambiar_estado'),
-
+    
     # ============================================
     # DASHBOARD Y REPORTES
     # ============================================
