@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-#m460&cotob)x@t(@nerf05(q_m$=4einmvd*$od+l5l4$3f)q
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.1.97','127.0.0.1','localhost']
+ALLOWED_HOSTS = ['192.168.1.87','127.0.0.1','localhost']
 
 
 # Application definition
@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'import_export',
     'App'
 ]
 

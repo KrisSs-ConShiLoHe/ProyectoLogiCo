@@ -1,6 +1,3 @@
-"""
-Vistas CRUD para Motoristas
-"""
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.urls import reverse_lazy
@@ -144,8 +141,8 @@ def listar_motoristas(request):
     page_obj = paginator.get_page(page_number)
     
     context = {
-        'page_obj': page_obj,
         'motoristas': page_obj,
+        'is_paginated': paginator.num_pages > 1,
         'puede_editar': request.user.rol in ['ADMINISTRADOR', 'SUPERVISOR']
     }
     return render(request, 'motorista/motorista_list.html', context)

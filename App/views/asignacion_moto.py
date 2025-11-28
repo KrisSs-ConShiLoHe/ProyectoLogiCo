@@ -180,16 +180,15 @@ def listar_asignaciones_moto(request):
 
     # Paginación
     paginator = Paginator(qs, 20)
-    page_obj = paginator.get_page(request.GET.get("page"))
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
 
-    return render(
-        request,
-        "asignacion_moto/asignacion_moto_list.html",
-        {
-            "page_obj": page_obj,
-            "puede_crear": request.user.rol in ["ADMINISTRADOR", "SUPERVISOR"]
-        },
-    )
+    context = {
+        "a_m": page_obj,
+        "is_paginated": paginator.num_pages > 1,
+        "puede_crear": request.user.rol in ['ADMINISTRADOR', 'SUPERVISOR'],
+    }
+    return render(request, "asignacion_moto/asignacion_moto_list.html", context)
 
 
 def crear_asignacion_moto(request):

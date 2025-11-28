@@ -6,8 +6,8 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView, D
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.core.paginator import Paginator
-from ..models import Moto
-from ..forms import MotoForm, MantenimientoMotoForm
+from ..models import Moto, DocumentacionMoto, PermisoCirculacion
+from ..forms import MotoForm, MantenimientoMotoForm, DocumentacionMotoForm, PermisoCirculacionForm, PermisoCirculacionFormSet
 from ..decorators import SupervisorOAdminMixin, LoginRequiredMixin
 import django_filters
 from django_filters.views import FilterView
@@ -45,16 +45,49 @@ class CrearMotoView(SupervisorOAdminMixin, CreateView):
         context = super().get_context_data(**kwargs)
         if self.request.POST:
             context['mantenimiento_form'] = MantenimientoMotoForm(self.request.POST)
+
+        # AÑADIR DocumentacionMotoForm
+        if self.request.POST:
+            context['documentacion_form'] = DocumentacionMotoForm(self.request.POST, self.request.FILES)
         else:
-            context['mantenimiento_form'] = MantenimientoMotoForm()
+            context['documentacion_form'] = DocumentacionMotoForm()
+
+        # 💡 NUEVO: Inicializar Formset de Permiso de Circulación vacío
+        if self.request.POST:
+            context['permiso_formset'] = PermisoCirculacionFormSet(self.request.POST)
+        else:
+            context['permiso_formset'] = PermisoCirculacionFormSet()
+
         return context
+
 
     def form_valid(self, form):
         context = self.get_context_data()
+        # ... (Recuperar documentacion_form y mantenimiento_form) ...
+        permiso_formset = context['permiso_formset'] # 💡 NUEVO
         mantenimiento_form = context['mantenimiento_form']
+        documentacion_form = context['documentacion_form']
 
-        # Guardar la moto primero
-        self.object = form.save()
+        if not documentacion_form.is_valid():
+            messages.error(self.request, 'Error al crear la moto. Faltan datos de documentación.')
+            # Retornar para mostrar errores
+            return self.render_to_response(self.get_context_data(form=form))
+
+        # VALIDAR FORMSET DE PERMISOS
+        if permiso_formset.is_valid():
+            
+            self.object = form.save() # Guardar la Moto
+
+        # 2. Guardar Documentación (Relación One-to-One)
+        documentacion = documentacion_form.save(commit=False)
+        documentacion.moto = self.object # Enlazar la documentación a la moto
+        documentacion.save()
+
+        # 💡 NUEVO: Guardar los permisos (Formset)
+        permisos = permiso_formset.save(commit=False)
+        for permiso in permisos:
+            permiso.moto = self.object # Asignar la FK a la Moto recién creada
+            permiso.save()
         
         # 1. Verificar el estado de la moto recién creada
         estado = self.object.estado
@@ -94,17 +127,52 @@ class ModificarMotoView(SupervisorOAdminMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        # Recuperar o crear instancia de DocumentacionMoto
+        doc_instance, created = DocumentacionMoto.objects.get_or_create(moto=self.object)
+
         if self.request.POST:
             context['mantenimiento_form'] = MantenimientoMotoForm(self.request.POST, instance=self.object.mantenimientos.first())
+            context['documentacion_form'] = DocumentacionMotoForm(self.request.POST, self.request.FILES, instance=doc_instance)
         else:
-            context['mantenimiento_form'] = MantenimientoMotoForm(instance=self.object.mantenimientos.first())
+            if self.object.estado == 'EN_MANTENIMIENTO':
+                context['mantenimiento_form'] = MantenimientoMotoForm(instance=self.object.mantenimientos.first())
+            context['documentacion_form'] = DocumentacionMotoForm(instance=doc_instance)
+
+    # 💡 NUEVO: Inicializar Formset de Permiso de Circulación con la instancia
+        if self.request.POST:
+            context['permiso_formset'] = PermisoCirculacionFormSet(self.request.POST, instance=self.object)
+        else:
+            context['permiso_formset'] = PermisoCirculacionFormSet(instance=self.object) # Pasar la instancia de Moto
+
         return context
 
     def form_valid(self, form):
         context = self.get_context_data()
+        # ... (Recuperar forms) ...
+        permiso_formset = context['permiso_formset'] # 💡 NUEVO
         mantenimiento_form = context['mantenimiento_form']
+        documentacion_form = context['documentacion_form']
 
-        self.object = form.save() # Guardamos la instancia de Moto
+        # 1. VALIDAR DOCUMENTACIÓN
+        if not documentacion_form.is_valid():
+            messages.error(self.request, 'Error al modificar la moto. Faltan datos de documentación.')
+            return self.render_to_response(self.get_context_data(form=form)) 
+
+        # VALIDAR FORMSET DE PERMISOS
+        if permiso_formset.is_valid():
+            
+            self.object = form.save() # Guardar la Moto
+        
+        # 3. Guardar o actualizar Documentación
+        documentacion = documentacion_form.save(commit=False)
+        documentacion.moto = self.object
+        documentacion.save()
+
+        # 💡 NUEVO: Guardar y eliminar permisos (maneja los cambios, creaciones y eliminaciones)
+        permiso_formset.instance = self.object # Asegurarse de que la instancia esté vinculada
+        permiso_formset.save()
+        
         estado = self.object.estado
 
         # 1. Caso: El estado es EN_MANTENIMIENTO
@@ -119,11 +187,9 @@ class ModificarMotoView(SupervisorOAdminMixin, UpdateView):
             mantenimiento.save()
 
         # 2. Caso: El estado NO es EN_MANTENIMIENTO
-        elif self.object.mantenimientos.exists():
-            # Si la moto ya no está en mantenimiento, pero tenía un registro previo, 
-            # puedes opcionalmente eliminar el registro (o simplemente dejarlo como historial).
-            # Por ahora, simplemente lo ignoramos. Si se quiere borrar, sería aquí.
-            pass
+        else:
+            # Si la moto ya no está en mantenimiento, eliminar cualquier registro de mantenimiento existente
+            self.object.mantenimientos.all().delete()
             
         messages.success(self.request, 'Moto modificada exitosamente.')
         return redirect(self.get_success_url())
@@ -193,8 +259,8 @@ def listar_motos(request):
     page_obj = paginator.get_page(page_number)
     
     context = {
-        'page_obj': page_obj,
         'motos': page_obj,
+        'is_paginated': paginator.num_pages > 1,  # ← Añadir esto
         'puede_editar': request.user.rol in ['ADMINISTRADOR', 'SUPERVISOR']
     }
     return render(request, 'moto/moto_list.html', context)
@@ -202,7 +268,7 @@ def listar_motos(request):
 
 def crear_moto(request):
     """
-    Crear una nueva moto junto con mantenimiento.
+    Crear una nueva moto junto con mantenimiento y asignación opcional a motorista.
     """
     if not request.user.is_authenticated:
         return redirect('login')
@@ -213,42 +279,63 @@ def crear_moto(request):
     
     if request.method == 'POST':
         form = MotoForm(request.POST, request.FILES)
-        mantenimiento_form = MantenimientoMotoForm(request.POST) # Formulario de mantenimiento siempre inicializado
+        mantenimiento_form = MantenimientoMotoForm(request.POST)
+        documentacion_form = DocumentacionMotoForm(request.POST, request.FILES)
+        permiso_formset = PermisoCirculacionFormSet(request.POST)
         
-        if form.is_valid():
-            moto = form.save(commit=False) # No guardar aún, necesitamos verificar el estado
+        if form.is_valid() and documentacion_form.is_valid() and permiso_formset.is_valid():
+            moto = form.save(commit=False)
+            duenio = moto.duenio
+            motorista_asignado = form.cleaned_data.get('motorista_asignado')
             estado = moto.estado
             
-            debe_guardar_mantenimiento = (estado == 'EN_MANTENIMIENTO')
+            # Validar mantenimiento si el estado lo requiere
+            if estado == 'EN_MANTENIMIENTO':
+                if not mantenimiento_form.is_valid():
+                    messages.error(request, 'Error: Faltan datos de mantenimiento obligatorios.')
+                    return render(request, 'moto/moto_form.html', {
+                        'form': form,
+                        'mantenimiento_form': mantenimiento_form,
+                        'documentacion_form': documentacion_form,
+                        'permiso_formset': permiso_formset,
+                        'titulo': 'Crear Moto'
+                    })
             
-            if debe_guardar_mantenimiento and not mantenimiento_form.is_valid():
-                # Caso 1: Se eligió 'EN_MANTENIMIENTO', pero faltan datos del formulario secundario.
-                messages.error(request, 'Error: Faltan datos de mantenimiento obligatorios.')
-                # Caeremos al render final con los errores del formulario de mantenimiento
-            else:
-                # Caso 2: El formulario principal es válido.
-                moto.save() # Guardamos la moto
-                
-                if debe_guardar_mantenimiento:
-                    # Caso 2a: Guardamos el mantenimiento si es necesario
-                    mantenimiento = mantenimiento_form.save(commit=False)
-                    mantenimiento.moto = moto
-                    mantenimiento.save()
-                    
-                messages.success(request, 'Moto creada exitosamente.')
-                return redirect('moto_listar')
+            # Guardar la moto
+            moto.save()
+            
+            # Guardar documentación
+            documentacion = documentacion_form.save(commit=False)
+            documentacion.moto = moto
+            documentacion.save()
+            
+            # Guardar permisos
+            permisos = permiso_formset.save(commit=False)
+            for permiso in permisos:
+                permiso.moto = moto
+                permiso.save()
+            
+            # Guardar mantenimiento si corresponde
+            if estado == 'EN_MANTENIMIENTO':
+                mantenimiento = mantenimiento_form.save(commit=False)
+                mantenimiento.moto = moto
+                mantenimiento.save()
+            
+            messages.success(request, 'Moto creada exitosamente.')
+            return redirect('moto_listar')
         else:
-            # Si el MotoForm no es válido
-            messages.error(request, 'Error al crear la moto. Revise los campos principales.')
-
-    # Inicialización para GET o si la validación falla
+            messages.error(request, 'Error al crear la moto. Revise los campos.')
     else:
         form = MotoForm()
         mantenimiento_form = MantenimientoMotoForm()
+        documentacion_form = DocumentacionMotoForm()
+        permiso_formset = PermisoCirculacionFormSet()
     
     return render(request, 'moto/moto_form.html', {
         'form': form,
         'mantenimiento_form': mantenimiento_form,
+        'documentacion_form': documentacion_form,
+        'permiso_formset': permiso_formset,
         'titulo': 'Crear Moto'
     })
 
@@ -266,54 +353,61 @@ def editar_moto(request, pk):
     
     moto = get_object_or_404(Moto, pk=pk)
     mantenimiento_instance = moto.mantenimientos.first()
+    documentacion_instance, created = DocumentacionMoto.objects.get_or_create(moto=moto)
     
     if request.method == 'POST':
         form = MotoForm(request.POST, request.FILES, instance=moto)
         mantenimiento_form = MantenimientoMotoForm(request.POST, instance=mantenimiento_instance)
+        documentacion_form = DocumentacionMotoForm(request.POST, request.FILES, instance=documentacion_instance)
+        permiso_formset = PermisoCirculacionFormSet(request.POST, instance=moto)
         
-        if form.is_valid():
-            moto = form.save()  # Guardamos la moto primero
+        if form.is_valid() and documentacion_form.is_valid() and permiso_formset.is_valid():
+            moto = form.save()
             estado = moto.estado
             
-            debe_guardar_mantenimiento = (estado == 'EN_MANTENIMIENTO')
+            # Guardar documentación
+            documentacion = documentacion_form.save(commit=False)
+            documentacion.moto = moto
+            documentacion.save()
             
-            if debe_guardar_mantenimiento:
-                # Si el estado es MANTENIMIENTO, el formulario secundario DEBE ser válido
+            # Guardar permisos
+            permiso_formset.save()
+            
+            # Manejar mantenimiento
+            if estado == 'EN_MANTENIMIENTO':
                 if not mantenimiento_form.is_valid():
-                    messages.error(request, 'Error al modificar la moto. Faltan datos de mantenimiento obligatorios.')
-                    # Renderizamos con los formularios para mostrar los errores
+                    messages.error(request, 'Error: Faltan datos de mantenimiento obligatorios.')
                     return render(request, 'moto/moto_form.html', {
                         'form': form,
                         'mantenimiento_form': mantenimiento_form,
+                        'documentacion_form': documentacion_form,
+                        'permiso_formset': permiso_formset,
                         'titulo': 'Editar Moto',
                         'moto': moto
                     })
-
-                # Si es válido, guardar/actualizar el mantenimiento
+                
                 mantenimiento = mantenimiento_form.save(commit=False)
                 mantenimiento.moto = moto
                 mantenimiento.save()
+            else:
+                # Si no está en mantenimiento, eliminar registros
+                moto.mantenimientos.all().delete()
             
-            # Opcional: Si el estado cambia a NO MANTENIMIENTO, puedes borrar el registro anterior.
-            # else:
-            #     if mantenimiento_instance:
-            #         mantenimiento_instance.delete()
-                    
             messages.success(request, 'Moto modificada exitosamente.')
             return redirect('moto_listar')
-        
         else:
-            # Si el MotoForm no es válido
-            messages.error(request, 'Error al modificar la moto. Revise los campos principales.')
-            
-    # Inicialización para GET o si la validación falla
+            messages.error(request, 'Error al modificar la moto. Revise los campos.')
     else:
         form = MotoForm(instance=moto)
         mantenimiento_form = MantenimientoMotoForm(instance=mantenimiento_instance)
+        documentacion_form = DocumentacionMotoForm(instance=documentacion_instance)
+        permiso_formset = PermisoCirculacionFormSet(instance=moto)
     
     return render(request, 'moto/moto_form.html', {
         'form': form,
         'mantenimiento_form': mantenimiento_form,
+        'documentacion_form': documentacion_form,
+        'permiso_formset': permiso_formset,
         'titulo': 'Editar Moto',
         'moto': moto
     })

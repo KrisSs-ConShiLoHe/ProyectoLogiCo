@@ -73,10 +73,10 @@
         </tr>
       </thead>
       <tbody>
-        {% for a in page_obj %}
+        {% for a in a_m %}
         <tr>
           <td>{{ a.motorista.identificador_unico }}</td>
-          <td>{{ a.motorista.usuario.get_full_name }}</td>
+          <td>{{ a.motorista.nombre }}</td>
           <td>{{ a.moto.identificador_unico }}</td>
           <td>{{ a.moto.patente }}</td>
           <td>{{ a.fecha_asignacion }}</td>
@@ -101,16 +101,15 @@
 <!-- Paginación -->
 {% if is_paginated %}
 <nav aria-label="pagination">
-  <ul class="pagination mt-3">
-    {% if farmacias.has_previous %}
-    <li class="page-item"><a class="page-link" href="?page={{ farmacias.previous_page_number }}">Anterior</a></li>
-    {% endif %}
-    <li class="page-item active"><span class="page-link">{{ farmacias.number }}</span></li>
-    {% if farmacias.has_next %}
-    <li class="page-item"><a class="page-link" href="?page={{ farmacias.next_page_number }}">Siguiente</a></li>
-    {% endif %}
-  </ul>
+    <ul class="pagination mt-3">
+        {% if a_m.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ a_m.previous_page_number }}">Anterior</a></li>
+        {% endif %}
+        <li class="page-item active"><span class="page-link">{{ a_m.number }}</span></li>
+        {% if a_m.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ a_m.next_page_number }}">Siguiente</a></li>
+        {% endif %}
+    </ul>
 </nav>
 {% endif %}
-
 {% endblock %}

@@ -9,12 +9,13 @@ from django.core.paginator import Paginator
 from django.utils import timezone
 from django.db.models import Q
 from ..models import Despacho, Motorista, Farmacia, AsignacionFarmacia
-from ..forms import DespachoForm, DespachoEstadoForm
+from ..forms import DespachoForm
 from ..forms import ProductoPedido, ProductoPedidoForm
 from ..decorators import RolRequiredMixin, LoginRequiredMixin
 import django_filters
 from django_filters.views import FilterView
 from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
 import logging
 
 
@@ -209,43 +210,6 @@ class AnularDespachoView(RolRequiredMixin, View):
         return redirect('despacho_listar')
 
 
-class CambiarEstadoDespachoView(RolRequiredMixin, View):
-    """
-    Cambiar estado de Despacho.
-    Roles: Motorista, Supervisor, Admin, Gerente.
-    """
-    roles_permitidos = ['OPERADOR', 'SUPERVISOR', 'ADMINISTRADOR', 'GERENTE']
-
-    def post(self, request, pk):
-        despacho = get_object_or_404(Despacho, pk=pk)
-        nuevo_estado = request.POST.get('estado')
-        
-        # Validar transiciones válidas
-        transiciones_validas = {
-            'PENDIENTE': ['EN_RUTA', 'ANULADO'],
-            'EN_RUTA': ['ENTREGADO', 'INCIDENCIA', 'ANULADO'],
-            'ENTREGADO': [],
-            'ANULADO': [],
-            'INCIDENCIA': ['EN_RUTA', 'ENTREGADO'],
-        }
-        
-        if nuevo_estado not in transiciones_validas.get(despacho.estado, []):
-            messages.error(request, 'Transición de estado no válida.')
-            return redirect('despacho_listar')
-        
-        # Actualizar fechas según el estado
-        if nuevo_estado == 'EN_RUTA' and not despacho.fecha_hora_despacho:
-            despacho.fecha_hora_despacho = timezone.now()
-        elif nuevo_estado == 'ENTREGADO' and not despacho.fecha_hora_entrega:
-            despacho.fecha_hora_entrega = timezone.now()
-        
-        despacho.estado = nuevo_estado
-        despacho.save()
-        
-        messages.success(request, f'Estado del despacho actualizado a {nuevo_estado}.')
-        return redirect('despacho_listar')
-
-
 class DespachoDetailView(LoginRequiredMixin, DetailView):
     model = Despacho
     template_name = 'despacho/despacho_detail.html'
@@ -335,16 +299,13 @@ def listar_despachos(request):
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-    # Permisos
-    puede_crear = request.user.rol in ["ADMINISTRADOR", "SUPERVISOR", "OPERADOR"]
-    puede_cambiar_estado = request.user.rol in ["ADMINISTRADOR", "SUPERVISOR"]
-
-    return render(request, "despacho/despacho_list.html", {
-        "page_obj": page_obj,
-        "is_paginated": page_obj.has_other_pages(),
-        "puede_crear": puede_crear,
-        "puede_cambiar_estado": puede_cambiar_estado,
-    })
+    context = {
+        "despachos": page_obj,
+        "is_paginated": paginator.num_pages > 1,
+        "puede_crear": request.user.rol in ['ADMINISTRADOR', 'SUPERVISOR', 'OPERADOR'],
+        "puede_cambiar_estado": request.user.rol in ['ADMINISTRADOR', 'SUPERVISOR', 'OPERADOR']
+    }
+    return render(request, "despacho/despacho_list.html", context)
 
 
 def crear_despacho(request):
@@ -558,67 +519,87 @@ def anular_despacho(request, pk):
     return render(request, 'despacho/despacho_confirm_delete.html', {'despacho': despacho})
 
 
-def cambiar_estado_despacho(request, pk):
-    """
-    Cambiar el estado de un despacho.
-    """
-    if not request.user.is_authenticated:
-        return redirect('login')
-    
-    if request.user.rol not in ['MOTORISTA', 'SUPERVISOR', 'ADMINISTRADOR', 'GERENTE']:
-        messages.error(request, 'No tienes permiso para cambiar estados de despachos.')
-        return redirect('despacho_listar')
-    
-    despacho = get_object_or_404(Despacho, pk=pk)
-    nuevo_estado = request.POST.get('estado')
-    
-    # Validar transiciones válidas
-    transiciones_validas = {
-        'PENDIENTE': ['EN_RUTA', 'ANULADO'],
-        'EN_RUTA': ['ENTREGADO', 'INCIDENCIA', 'ANULADO'],
-        'ENTREGADO': [],
-        'ANULADO': [],
-        'INCIDENCIA': ['EN_RUTA', 'ENTREGADO'],
-    }
-    
-    if nuevo_estado not in transiciones_validas.get(despacho.estado, []):
-        messages.error(request, 'Transición de estado no válida.')
-        return redirect('despacho_listar')
-    
-    # Actualizar fechas según el estado
-    if nuevo_estado == 'EN_RUTA' and not despacho.fecha_hora_despacho:
-        despacho.fecha_hora_despacho = timezone.now()
-    elif nuevo_estado == 'ENTREGADO' and not despacho.fecha_hora_entrega:
-        despacho.fecha_hora_entrega = timezone.now()
-    
-    despacho.estado = nuevo_estado
-    despacho.save()
-    
-    messages.success(request, f'Estado del despacho actualizado a {nuevo_estado}.')
-    return redirect('despacho_listar')
-
-
 logger = logging.getLogger(__name__)
+
+@require_http_methods(["GET"])
 def motoristas_por_farmacia(request):
     """
     Vista AJAX para obtener motoristas asignados a una farmacia específica.
     """
-    logger.info(f"Request method: {request.method}, headers: {request.headers}")
-    if request.method == 'GET' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        farmacia_id = request.GET.get('farmacia_id')
-        logger.info(f"Farmacia ID: {farmacia_id}")
-        if farmacia_id:
-            try:
-                asignaciones = AsignacionFarmacia.objects.filter(farmacia_id=farmacia_id, activa=True)
-                logger.info(f"Asignaciones encontradas: {asignaciones.count()}")
-                motoristas_ids = asignaciones.values_list('motorista_id', flat=True)
-                logger.info(f"Motoristas IDs: {list(motoristas_ids)}")
-                motoristas = Motorista.objects.filter(id__in=motoristas_ids).values('id', 'usuario__first_name', 'usuario__last_name', 'rut')
-                logger.info(f"Motoristas data: {list(motoristas)}")
-                data = [{'id': m['id'], 'text': f"{m['usuario__first_name']} {m['usuario__last_name']} - RUT: {m['rut']}"} for m in motoristas]
-                return JsonResponse({'motoristas': data})
-            except Exception as e:
-                logger.error(f"Error en vista: {e}")
-                return JsonResponse({'error': str(e)}, status=500)
-        return JsonResponse({'error': 'Farmacia ID requerido'}, status=400)
-    return JsonResponse({'error': 'Método no permitido'}, status=405)
+    logger.info(f"Request recibido - Method: {request.method}")
+    logger.info(f"Headers: {dict(request.headers)}")
+    logger.info(f"GET params: {request.GET}")
+    
+    # Verificar si es AJAX (más permisivo para compatibilidad)
+    is_ajax = (
+        request.headers.get('x-requested-with') == 'XMLHttpRequest' or
+        request.headers.get('X-Requested-With') == 'XMLHttpRequest' or
+        request.GET.get('ajax') == '1'
+    )
+    
+    if not is_ajax:
+        logger.warning("Petición no es AJAX")
+        return JsonResponse({'error': 'Esta vista solo acepta peticiones AJAX'}, status=400)
+    
+    farmacia_id = request.GET.get('farmacia_id')
+    logger.info(f"Farmacia ID recibido: {farmacia_id}")
+    
+    if not farmacia_id:
+        logger.error("Falta farmacia_id en la petición")
+        return JsonResponse({'error': 'Farmacia ID es requerido'}, status=400)
+    
+    try:
+        # Validar que farmacia_id sea un número
+        farmacia_id = int(farmacia_id)
+        logger.info(f"Farmacia ID validado: {farmacia_id}")
+        
+        # Verificar que la farmacia existe
+        try:
+            farmacia = Farmacia.objects.get(pk=farmacia_id)
+            logger.info(f"Farmacia encontrada: {farmacia}")
+        except Farmacia.DoesNotExist:
+            logger.error(f"Farmacia con ID {farmacia_id} no existe")
+            return JsonResponse({'error': 'Farmacia no encontrada'}, status=404)
+        
+        # Buscar asignaciones activas
+        asignaciones = AsignacionFarmacia.objects.filter(
+            farmacia_id=farmacia_id, 
+            activa=True
+        ).select_related('motorista', 'motorista__usuario')
+        
+        logger.info(f"Asignaciones encontradas: {asignaciones.count()}")
+        
+        # Construir lista de motoristas
+        motoristas_data = []
+        for asignacion in asignaciones:
+            motorista = asignacion.motorista
+
+            # Usar la propiedad nombre_completo del modelo Motorista
+            nombre_completo = motorista.nombre_completo
+
+            motorista_dict = {
+                'id': motorista.identificador_unico,
+                'text': f"{nombre_completo} - RUT: {motorista.rut}",
+                'identificador': motorista.identificador_unico
+            }
+
+            motoristas_data.append(motorista_dict)
+            logger.info(f"Motorista agregado: {motorista_dict}")
+        
+        logger.info(f"Total motoristas devueltos: {len(motoristas_data)}")
+        
+        return JsonResponse({
+            'motoristas': motoristas_data,
+            'count': len(motoristas_data)
+        })
+        
+    except ValueError:
+        logger.error(f"Farmacia ID inválido: {farmacia_id}")
+        return JsonResponse({'error': 'Farmacia ID debe ser un número válido'}, status=400)
+    
+    except Exception as e:
+        logger.error(f"Error inesperado en motoristas_por_farmacia: {str(e)}", exc_info=True)
+        return JsonResponse({
+            'error': 'Error interno del servidor',
+            'detail': str(e) if request.user.is_staff else 'Contacte al administrador'
+        }, status=500)

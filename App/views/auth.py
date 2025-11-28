@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect
 from django.views.generic import View, FormView
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.views import PasswordChangeView, PasswordResetView, PasswordResetConfirmView
-from django.contrib.auth.forms import PasswordChangeForm, SetPasswordForm
+from django.contrib.auth.forms import PasswordChangeForm, PasswordResetForm, SetPasswordForm
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.http import HttpResponseRedirect
@@ -92,7 +92,7 @@ class PasswordResetView(FormView):
     Vista para solicitar restablecimiento de contraseña.
     """
     template_name = 'auth/password_reset.html'
-    form_class = SetPasswordForm
+    form_class = PasswordResetForm
     success_url = reverse_lazy('login')
 
     def form_valid(self, form):

@@ -1,119 +1,333 @@
 {% extends "base.html" %}
 
-{% block title %}Reportes - LogiCo{% endblock %}
+{% block title %}Reportes de Despachos - LogiCo{% endblock %}
 
 {% block content %}
-<div class="page-title d-flex justify-content-between align-items-center mb-3">
-  <h1><i class="bi bi-newspaper"></i> Reportes</h1>
+<div class="page-title d-flex justify-content-between align-items-center">
+  <h1><i class="bi bi-file-earmark-bar-graph"></i> Reportes de Despachos</h1>
 </div>
 
-<!-- Filtros -->
-<div class="card shadow-sm mb-4">
+<!-- ========== ESTADÍSTICAS ========== -->
+<div class="row mb-4">
+  <div class="col-md-3">
+    <div class="card bg-primary text-white">
+      <div class="card-body">
+        <h5 class="card-title">Total Despachos</h5>
+        <h2>{{ total_despachos }}</h2>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card bg-warning text-white">
+      <div class="card-body">
+        <h5 class="card-title">Pendientes</h5>
+        <h2>{{ estadisticas.pendientes }}</h2>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card bg-info text-white">
+      <div class="card-body">
+        <h5 class="card-title">En Ruta</h5>
+        <h2>{{ estadisticas.en_ruta }}</h2>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card bg-success text-white">
+      <div class="card-body">
+        <h5 class="card-title">Entregados</h5>
+        <h2>{{ estadisticas.entregados }}</h2>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== FILTROS DE DESPACHOS ========== -->
+<div class="card mb-4">
+  <div class="card-header bg-primary text-white">
+    <h5 class="mb-0"><i class="bi bi-funnel"></i> Filtros de Reporte</h5>
+  </div>
   <div class="card-body">
-    <form method="get" class="row g-3">
-      <div class="col-md-3">
-        <label class="form-label fw-semibold">Tipo de Reporte</label>
+    <form method="get" class="row g-3" id="form-filtros">
+      <div class="col-md-2">
+        <label class="form-label">Tipo de Reporte</label>
         <select name="tipo_filtro" class="form-select" id="id_tipo_filtro">
+          <option value="general" {% if tipo_filtro == 'general' %}selected{% endif %}>General</option>
           <option value="diario" {% if tipo_filtro == 'diario' %}selected{% endif %}>Diario</option>
           <option value="mensual" {% if tipo_filtro == 'mensual' %}selected{% endif %}>Mensual</option>
           <option value="anual" {% if tipo_filtro == 'anual' %}selected{% endif %}>Anual</option>
-          <option value="general" {% if tipo_filtro == 'general' %}selected{% endif %}>General</option>
         </select>
       </div>
 
-      <div class="col-md-3">
-        <label class="form-label fw-semibold">Fecha</label>
+      <div class="col-md-2" id="filtro-fecha" style="display: none;">
+        <label class="form-label">Fecha</label>
         <input type="date" name="fecha" value="{{ fecha }}" class="form-control">
       </div>
 
-      <div class="col-md-2">
-        <label class="form-label fw-semibold">Mes</label>
+      <div class="col-md-2" id="filtro-mes" style="display: none;">
+        <label class="form-label">Mes</label>
         <input type="month" name="mes" value="{{ mes }}" class="form-control">
       </div>
 
-      <div class="col-md-2">
-        <label class="form-label fw-semibold">Año</label>
+      <div class="col-md-2" id="filtro-anio" style="display: none;">
+        <label class="form-label">Año</label>
         <input type="number" name="anio" value="{{ anio }}" class="form-control" min="2000" max="2100">
       </div>
 
-      <div class="col-md-2">
-        <label class="form-label fw-semibold">ID único</label>
-        <input type="text" name="id_motorista" class="form-control" value="{{ id_motorista }}">
+      <div class="col-md-3">
+        <label class="form-label">Motorista</label>
+        <select name="id_motorista" class="form-select">
+          <option value="">Todos los motoristas</option>
+          {% for motorista in motoristas %}
+            <option value="{{ motorista.identificador_unico }}" 
+                    {% if id_motorista == motorista.identificador_unico %}selected{% endif %}>
+              {{ motorista.identificador_unico }} - {{ motorista.nombre_completo }}
+            </option>
+          {% endfor %}
+        </select>
       </div>
 
-      <div class="col-12 text-end mt-2">
-        <button type="submit" class="btn btn-primary">
+      <div class="col-md-3 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary me-2">
           <i class="bi bi-search"></i> Filtrar
         </button>
+        <a href="{% url 'reportes' %}" class="btn btn-secondary">
+          <i class="bi bi-x-circle"></i> Limpiar
+        </a>
       </div>
     </form>
   </div>
 </div>
 
-<!-- Botones Exportación -->
-<div class="d-flex justify-content-end gap-2 mb-3">
+<!-- ========== BOTONES DE EXPORTACIÓN ========== -->
+<div class="card mb-4">
+  <div class="card-header bg-success text-white">
+    <h5 class="mb-0"><i class="bi bi-download"></i> Descargar Reporte</h5>
+  </div>
+  <div class="card-body">
+    <div class="d-flex gap-2 flex-wrap">
+      <form method="get" action="{% url 'reporte_csv' %}" class="d-inline">
+        <input type="hidden" name="tipo" value="{{ tipo_filtro }}">
+        <input type="hidden" name="fecha" value="{{ fecha }}">
+        <input type="hidden" name="mes" value="{{ mes }}">
+        <input type="hidden" name="anio" value="{{ anio }}">
+        <input type="hidden" name="id_motorista" value="{{ id_motorista }}">
+        <button type="submit" class="btn btn-success">
+          <i class="bi bi-file-earmark-spreadsheet"></i> Descargar CSV
+        </button>
+      </form>
 
-  <form method="get" action="{% url 'reporte_csv' %}">
-    <input type="hidden" name="tipo_filtro" value="{{ tipo_filtro }}">
-    <input type="hidden" name="fecha" value="{{ fecha }}">
-    <input type="hidden" name="mes" value="{{ mes }}">
-    <input type="hidden" name="anio" value="{{ anio }}">
-    <input type="hidden" name="id_motorista" value="{{ id_motorista }}">
-
-    <button type="submit" class="btn btn-success">
-      <i class="bi bi-file-earmark-spreadsheet"></i> Exportar CSV
-    </button>
-  </form>
-
-  <form method="get" action="{% url 'reporte_pdf' %}">
-    <input type="hidden" name="tipo_filtro" value="{{ tipo_filtro }}">
-    <input type="hidden" name="fecha" value="{{ fecha }}">
-    <input type="hidden" name="mes" value="{{ mes }}">
-    <input type="hidden" name="anio" value="{{ anio }}">
-    <input type="hidden" name="id_motorista" value="{{ id_motorista }}">
-
-    <button type="submit" class="btn btn-danger">
-      <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
-    </button>
-  </form>
-
+      <form method="get" action="{% url 'reporte_pdf' %}" class="d-inline">
+        <input type="hidden" name="tipo" value="{{ tipo_filtro }}">
+        <input type="hidden" name="fecha" value="{{ fecha }}">
+        <input type="hidden" name="mes" value="{{ mes }}">
+        <input type="hidden" name="anio" value="{{ anio }}">
+        <input type="hidden" name="id_motorista" value="{{ id_motorista }}">
+        <button type="submit" class="btn btn-danger">
+          <i class="bi bi-file-earmark-pdf"></i> Descargar PDF
+        </button>
+      </form>
+    </div>
+    
+    {% if total_despachos > 0 %}
+      <div class="alert alert-info mt-3 mb-0">
+        <i class="bi bi-info-circle"></i> 
+        Se exportarán <strong>{{ total_despachos }}</strong> despacho(s) con los filtros aplicados.
+        {% if total_despachos > 100 %}
+          <br><small>Nota: El PDF está limitado a 100 registros. Use CSV para exportar todos.</small>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
 </div>
 
-<!-- Tabla -->
-<div class="card shadow-sm">
+<!-- ========== PREVIEW DE DESPACHOS ========== -->
+<div class="card mb-4">
+  <div class="card-header bg-info text-white">
+    <h5 class="mb-0"><i class="bi bi-eye"></i> Vista Previa - Despachos a Exportar</h5>
+  </div>
   <div class="table-responsive">
     <table class="table table-striped table-hover align-middle mb-0">
-      <thead class="table-primary">
+      <thead class="table-dark">
         <tr>
-          <th>ID Pedido</th>
+          <th>ID</th>
           <th>Tipo Movimiento</th>
           <th>Farmacia</th>
           <th>Motorista</th>
           <th>Estado</th>
           <th>Fecha Creación</th>
-          <th>Tiempo Entrega (min)</th>
+          <th>Tiempo (min)</th>
         </tr>
       </thead>
       <tbody>
         {% for despacho in despachos %}
           <tr>
             <td>{{ despacho.identificador_unico }}</td>
-            <td>{{ despacho.get_tipo_movimiento_display }}</td>
-            <td>{{ despacho.farmacia_origen.nombre }}</td>
-            <td>{{ despacho.motorista_asignado.usuario.get_full_name }}</td>
-            <td>{{ despacho.get_estado_display }}</td>
+            <td>
+              <span class="badge bg-secondary">{{ despacho.get_tipo_movimiento_display }}</span>
+            </td>
+            <td>{{ despacho.farmacia_origen.nombre|truncatewords:3 }}</td>
+            <td>{{ despacho.motorista_asignado.nombre_completo|default:"Sin asignar" }}</td>
+            <td>
+              {% if despacho.estado == 'PENDIENTE' %}
+                <span class="badge bg-warning">{{ despacho.get_estado_display }}</span>
+              {% elif despacho.estado == 'EN_RUTA' %}
+                <span class="badge bg-info">{{ despacho.get_estado_display }}</span>
+              {% elif despacho.estado == 'ENTREGADO' %}
+                <span class="badge bg-success">{{ despacho.get_estado_display }}</span>
+              {% elif despacho.estado == 'INCIDENCIA' %}
+                <span class="badge bg-danger">{{ despacho.get_estado_display }}</span>
+              {% else %}
+                <span class="badge bg-secondary">{{ despacho.get_estado_display }}</span>
+              {% endif %}
+            </td>
             <td>{{ despacho.fecha_hora_creacion|date:"Y-m-d H:i" }}</td>
-            <td>{{ despacho.tiempo_entrega_minutos }}</td>
+            <td>{{ despacho.tiempo_entrega_minutos|default:"-" }}</td>
           </tr>
         {% empty %}
           <tr>
             <td colspan="7" class="text-center text-muted py-4">
-              No hay despachos registrados.
+              <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+              <br>No hay despachos que coincidan con los filtros aplicados.
             </td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
+  {% if despachos|length == 100 and total_despachos > 100 %}
+    <div class="card-footer">
+      <small class="text-muted">
+        <i class="bi bi-info-circle"></i> 
+        Mostrando los primeros 100 de {{ total_despachos }} despachos totales.
+      </small>
+    </div>
+  {% endif %}
 </div>
+
+<!-- ========== HISTORIAL DE REPORTES DESCARGADOS ========== -->
+<div class="card">
+  <div class="card-header bg-secondary text-white">
+    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Historial de Reportes Descargados</h5>
+  </div>
+  <div class="card-body">
+    <!-- Filtros del historial -->
+    <form method="get" class="row g-3 mb-3">
+      <!-- Mantener filtros principales -->
+      <input type="hidden" name="tipo_filtro" value="{{ tipo_filtro }}">
+      <input type="hidden" name="fecha" value="{{ fecha }}">
+      <input type="hidden" name="mes" value="{{ mes }}">
+      <input type="hidden" name="anio" value="{{ anio }}">
+      <input type="hidden" name="id_motorista" value="{{ id_motorista }}">
+      
+      <div class="col-md-3">
+        <label class="form-label">Fecha Desde</label>
+        <input type="date" name="historial_fecha_desde" value="{{ historial_fecha_desde }}" class="form-control">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Fecha Hasta</label>
+        <input type="date" name="historial_fecha_hasta" value="{{ historial_fecha_hasta }}" class="form-control">
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-sm btn-primary">
+          <i class="bi bi-funnel"></i> Filtrar Historial
+        </button>
+      </div>
+    </form>
+
+    <div class="table-responsive">
+      <table class="table table-sm table-hover">
+        <thead class="table-light">
+          <tr>
+            <th>Fecha Descarga</th>
+            <th>Tipo Reporte</th>
+            <th>Formato</th>
+            <th>Periodo</th>
+            <th>Motorista</th>
+            <th>Registros</th>
+            <th>Archivo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for reporte in historial %}
+            <tr>
+              <td>{{ reporte.fecha_descarga|date:"Y-m-d H:i:s" }}</td>
+              <td>
+                <span class="badge bg-primary">{{ reporte.get_tipo_reporte_display }}</span>
+              </td>
+              <td>
+                {% if reporte.formato == 'CSV' %}
+                  <span class="badge bg-success">CSV</span>
+                {% else %}
+                  <span class="badge bg-danger">PDF</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if reporte.fecha_desde and reporte.fecha_hasta %}
+                  <small>{{ reporte.fecha_desde|date:"Y-m-d" }} al {{ reporte.fecha_hasta|date:"Y-m-d" }}</small>
+                {% else %}
+                  <small class="text-muted">Todo el periodo</small>
+                {% endif %}
+              </td>
+              <td>
+                {% if reporte.motorista %}
+                  <small>{{ reporte.motorista.nombre_completo|truncatewords:2 }}</small>
+                {% else %}
+                  <small class="text-muted">Todos</small>
+                {% endif %}
+              </td>
+              <td>
+                <span class="badge bg-info">{{ reporte.cantidad_registros }}</span>
+              </td>
+              <td>
+                <small class="text-muted font-monospace">{{ reporte.nombre_archivo|truncatechars:30 }}</small>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="text-center text-muted py-3">
+                No has descargado reportes aún.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const tipoFiltroSelect = document.getElementById('id_tipo_filtro');
+  const filtroFecha = document.getElementById('filtro-fecha');
+  const filtroMes = document.getElementById('filtro-mes');
+  const filtroAnio = document.getElementById('filtro-anio');
+  
+  function toggleFiltros() {
+    const tipo = tipoFiltroSelect.value;
+    
+    // Ocultar todos primero
+    filtroFecha.style.display = 'none';
+    filtroMes.style.display = 'none';
+    filtroAnio.style.display = 'none';
+    
+    // Mostrar según tipo
+    if (tipo === 'diario') {
+      filtroFecha.style.display = 'block';
+    } else if (tipo === 'mensual') {
+      filtroMes.style.display = 'block';
+    } else if (tipo === 'anual') {
+      filtroAnio.style.display = 'block';
+    }
+    // 'general' no muestra ningún filtro adicional
+  }
+  
+  tipoFiltroSelect.addEventListener('change', toggleFiltros);
+  
+  // Inicializar
+  toggleFiltros();
+});
+</script>
+
 {% endblock %}

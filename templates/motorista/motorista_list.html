@@ -81,6 +81,7 @@
                 <tr>
                     <th>ID</th>
                     <th>Usuario</th>
+                    <th>Nombre</th>
                     <th>Apellido Paterno</th>
                     <th>Apellido Materno</th>
                     <th>RUT</th>
@@ -91,10 +92,11 @@
                 </tr>
             </thead>
             <tbody>
-                {% for motorista in page_obj %}
+                {% for motorista in motoristas %}
                 <tr>
                     <td>{{ motorista.identificador_unico }}</td>
                     <td>{{ motorista.usuario.get_full_name }} ({{ motorista.usuario.username }} {{ motorista.usuario }})</td>
+                    <td>{{ motorista.nombre }}</td>
                     <td>{{ motorista.apellido_paterno }}</td>
                     <td>{{ motorista.apellido_materno }}</td>
                     <td>{{ motorista.rut }}</td>
@@ -148,15 +150,15 @@
 <!-- Paginación -->
 {% if is_paginated %}
 <nav aria-label="pagination">
-  <ul class="pagination mt-3">
-    {% if page_obj.has_previous %}
-    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
-    {% endif %}
-    <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
-    {% if page_obj.has_next %}
-    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
-    {% endif %}
-  </ul>
+    <ul class="pagination mt-3">
+        {% if motoristas.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ motoristas.previous_page_number }}">Anterior</a></li>
+        {% endif %}
+        <li class="page-item active"><span class="page-link">{{ motoristas.number }}</span></li>
+        {% if motoristas.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ motoristas.next_page_number }}">Siguiente</a></li>
+        {% endif %}
+    </ul>
 </nav>
 {% endif %}
 {% endblock %}

@@ -27,6 +27,8 @@
                     <li class="list-group-item"><strong>Horario de recepción de pedidos (inicio):</strong> {{ farmacia.horario_recepcion_inicio }}</li>
                      <li class="list-group-item"><strong>Horario de recepción de pedidos (final):</strong> {{ farmacia.horario_recepcion_fin }}</li>
                     <li class="list-group-item"><strong>Días operativos:</strong><span class="badge bg-warning">{{ farmacia.dias_operativos }}</span></li>
+                    <li class="list-group-item"><strong>Latitud:</strong> {{ farmacia.latitud }}</li>
+                    <li class="list-group-item"><strong>Longitud:</strong> {{ farmacia.longitud }}</li>
                     <li class="list-group-item"><strong>Teléfono:</strong> {{ farmacia.telefono }}</li>
                     <li class="list-group-item"><strong>Correo electrónico:</strong> {{ farmacia.correo }}</li>
                     <li class="list-group-item"><strong>Activo:</strong> {% if farmacia.activa %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-danger">No</span>{% endif %}</li>

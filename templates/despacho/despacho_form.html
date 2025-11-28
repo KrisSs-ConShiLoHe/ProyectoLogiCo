@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %} 
 
 {% block title %}{{ titulo }} - LogiCo{% endblock %}
 
@@ -10,42 +10,60 @@
 <div class="card p-4">
   <form method="post" enctype="multipart/form-data" novalidate>
     {% csrf_token %}
-    {% if despacho.imagen %}
-      <img src="{{ despacho.imagen.url }}" alt="Foto de Despacho" />
-    {% endif %}
     
+    {# -------- VISTA PREVIA DE IMAGEN -------- #}
+    <div class="mb-3">
+      <img 
+        id="preview-imagen"
+        src="{% if despacho.imagen %}{{ despacho.imagen.url }}{% endif %}"
+        alt="Foto de Despacho"
+        class="img-thumbnail"
+        style="max-width: 300px; display: {% if despacho.imagen %}block{% else %}none{% endif %};"
+      />
+    </div>
+
+
     {% for field in form %}
-      
-    {# Determine extra class from field widget attrs to add to wrapping div #}
-      {% with extra_class=field.field.widget.attrs.class %}
       <div class="mb-3">
-        <label class="form-label"></label>{{ field.label }}</label>
+        <label class="form-label">{{ field.label }}</label>
         {{ field }}
-        {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
-        {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
+        {% if field.help_text %}
+          <div class="form-text">{{ field.help_text }}</div>
+        {% endif %}
+        {% if field.errors %}
+          <div class="invalid-feedback d-block">{{ field.errors }}</div>
+        {% endif %}
       </div>
-      {% endwith %}
     {% endfor %}
 
-    {# Campos de producto (siempre renderizados, pero ocultos por JS si no es DIRECTO) #}
+
     {% if producto_form %}
-      {% for field in producto_form %}
+    <br><br>
+    <div id="producto-container"> 
+        <h3>Información del Producto</h3>
         <div class="mb-3">
-          <label class="form-label">{{ field.label }}</label>
-          {{ field }}
-          {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
-          {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
+            {% for field in producto_form %}
+                <div class="mb-3">
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <div class="form-text">{{ field.help_text }}</div>
+                    {% endif %}
+                    {% if field.errors %}
+                        <div class="invalid-feedback d-block">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
         </div>
-      {% endfor %}
+    </div>
     {% endif %}
     
-      
     <div class="d-flex gap-2">
       <button type="submit" class="btn btn-primary">
-          <i class="bi bi-check-circle"></i> Guardar
+        <i class="bi bi-check-circle"></i> Guardar
       </button>
       <a href="{% url 'despacho_listar' %}" class="btn btn-secondary">
-          <i class="bi bi-x-circle"></i> Cancelar
+        <i class="bi bi-x-circle"></i> Cancelar
       </a>
     </div>
   </form>
@@ -53,25 +71,81 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+
+  // ---------------------------------------------------------------------
+  //  PREVISUALIZAR IMAGEN
+  // ---------------------------------------------------------------------
+  const inputImagen = document.getElementById("id_imagen");
+  const previewImg = document.getElementById("preview-imagen");
+
+  if (inputImagen && previewImg) {
+    inputImagen.addEventListener("change", function(event) {
+      const file = event.target.files[0];
+
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          previewImg.src = e.target.result;
+          previewImg.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  // ---------------------------------------------------------------------
+  //  CARGA DINÁMICA DE MOTORISTAS
+  // ---------------------------------------------------------------------
   const farmaciaSelect = document.getElementById('id_farmacia_origen');
   const motoristaSelect = document.getElementById('id_motorista_asignado');
   
-  if (!farmaciaSelect || !motoristaSelect) return;
-  
-  farmaciaSelect.addEventListener('change', function() {
-    const farmaciaId = this.value;
-    if (farmaciaId) {
-      const url = `{% url 'motoristas_por_farmacia' %}`;  // Genera la URL correcta dinámicamente
-      fetch(`${url}?farmacia_id=${farmaciaId}`, {
+  if (farmaciaSelect && motoristaSelect) {
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+    
+    const csrftoken = getCookie('csrftoken');
+    
+    farmaciaSelect.addEventListener('change', function() {
+      const farmaciaId = this.value;
+      
+      motoristaSelect.innerHTML = '<option value="">Cargando...</option>';
+      motoristaSelect.disabled = true;
+      
+      if (!farmaciaId) {
+        motoristaSelect.innerHTML = '<option value="">Primero seleccione una farmacia</option>';
+        motoristaSelect.disabled = false;
+        return;
+      }
+      
+      const url = new URL('{% url "motoristas_por_farmacia" %}', window.location.origin);
+      url.searchParams.append('farmacia_id', farmaciaId);
+      
+      fetch(url.toString(), {
         method: 'GET',
         headers: {
           'X-Requested-With': 'XMLHttpRequest',
           'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken
         },
+        credentials: 'same-origin'
       })
       .then(response => {
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          return response.json().then(data => {
+            throw new Error(data.error || `HTTP ${response.status}`);
+          });
         }
         return response.json();
       })
@@ -86,71 +160,78 @@ document.addEventListener('DOMContentLoaded', function() {
             motoristaSelect.appendChild(option);
           });
         } else {
-          motoristaSelect.innerHTML = '<option value="">No hay motoristas asignados</option>';
+          motoristaSelect.innerHTML = '<option value="">No hay motoristas asignados a esta farmacia</option>';
         }
+        
+        motoristaSelect.disabled = false;
       })
       .catch(error => {
-        console.error('Error en AJAX:', error);
-        motoristaSelect.innerHTML = '<option value="">Error al cargar motoristas</option>';
+        motoristaSelect.innerHTML = `<option value="">Error: ${error.message}</option>`;
+        motoristaSelect.disabled = false;
       });
-    } else {
-      motoristaSelect.innerHTML = '<option value="">---------</option>';
-    }
-  });
-  
-  // Tu script existente para tipo_movimiento y estado
-  // ... (copia aquí)
-});
-</script>
+    });
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
+    if (farmaciaSelect.value) {
+      farmaciaSelect.dispatchEvent(new Event('change'));
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  //  VISIBILIDAD DE CAMPOS SEGÚN TIPO Y ESTADO
+  // ---------------------------------------------------------------------
   const tipoSelect = document.getElementById('id_tipo_movimiento');
   const estadoSelect = document.getElementById('id_estado');
+  
   if (!tipoSelect || !estadoSelect) return;
 
-  const directoFields = document.querySelectorAll('.extra-producto');
+  const productoContainer = document.getElementById('producto-container');
   const conRecetaFields = document.querySelectorAll('.extra-con-receta');
   const trasladoFields = document.querySelectorAll('.extra-con-traslado');
   const reenvioFields = document.querySelectorAll('.extra-reenvio');
   const incidenciaFields = document.querySelectorAll('.extra-incidencia');
-  const incidenciaFechaHoraFields = document.querySelectorAll('.extra-incidencia');
 
   function hideFields(fields) {
     fields.forEach(f => {
-      const container = f.closest('.mb-3');
-      if (container) container.style.display = 'none';
+      const c = f.closest('.mb-3');
+      if (c) c.style.display = 'none';
       else f.style.display = 'none';
     });
   }
 
   function showFields(fields) {
     fields.forEach(f => {
-      const container = f.closest('.mb-3');
-      if (container) container.style.display = '';
+      const c = f.closest('.mb-3');
+      if (c) c.style.display = '';
       else f.style.display = '';
     });
   }
 
   function onTipoChange() {
     const val = tipoSelect.value;
-    hideFields(directoFields)
+    
+    if (productoContainer) productoContainer.style.display = 'none';
     hideFields(conRecetaFields);
     hideFields(trasladoFields);
     hideFields(reenvioFields);
-    if (val === 'DIRECTO') showFields(directoFields);
-    else if (val === 'CON_RECETA') showFields(conRecetaFields);
-    else if (val === 'CON_TRASLADO') showFields(trasladoFields);
-    else if (val === 'REENVIO') showFields(reenvioFields);
+
+    if (val === 'DIRECTO') {
+      if (productoContainer) productoContainer.style.display = 'block';
+    } else if (val === 'CON_RECETA') {
+      showFields(conRecetaFields);
+    } else if (val === 'CON_TRASLADO') {
+      showFields(trasladoFields);
+    } else if (val === 'REENVIO') {
+      showFields(reenvioFields);
+    }
   }
 
   function onEstadoChange() {
     const val = estadoSelect.value;
     hideFields(incidenciaFields);
-    hideFields(incidenciaFechaHoraFields);
 
-    if (val === 'INCIDENCIA') showFields(incidenciaFields);
-    else if (val === 'INCIDENCIA') showFields(incidenciaFechaHoraFields);
+    if (val === 'INCIDENCIA') {
+      showFields(incidenciaFields);
+    }
   }
 
   tipoSelect.addEventListener('change', onTipoChange);

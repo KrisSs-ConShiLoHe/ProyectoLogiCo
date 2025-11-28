@@ -10,27 +10,228 @@
 <div class="card p-4">
   <form method="post" enctype="multipart/form-data" novalidate>
     {% csrf_token %}
-      {% if moto.imagen %}
-        <img src="{{ moto.imagen.url }}" alt="Foto de Moto" />
-      {% endif %}
+    
+    {% if moto.imagen %}
+      <div class="mb-3">
+        <img src="{{ moto.imagen.url }}" alt="Foto de Moto" style="max-width: 300px;" class="img-thumbnail" />
+      </div>
+    {% endif %}
+    
     {% for field in form %}
-
-    <div class="mb-3">
-      <label class="form-label">{{ field.label }}</label>
-      {{ field }}
-      {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
-    </div>
-    {% endfor %}
-
-    {% if mantenimiento_form %}
-    {% for field in mantenimiento_form %}
-    <div class="mb-3 extra-mantenimiento" style="display:none;">
+      <div class="mb-3 campo-moto" data-field-name="{{ field.name }}">
         <label class="form-label">{{ field.label }}</label>
         {{ field }}
-        {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
-    </div>
+        {% if field.help_text %}
+          <small class="form-text text-muted">{{ field.help_text }}</small>
+        {% endif %}
+        {% if field.errors %}
+          <div class="invalid-feedback d-block">{{ field.errors }}</div>
+        {% endif %}
+      </div>
     {% endfor %}
+
+    <br><br>
+    <h3>Documentación Legal</h3>
+    <div class="mb-3 campo-moto">
+      {{ documentacion_form.as_p }} 
+    </div>
+
+    <br><br>
+    <h3>Historial de Permiso de Circulación</h3>
+    <div class="mb-3 campo-moto">
+      {{ permiso_formset.management_form }}
+
+      <div id="permiso-container">
+        {% for form_permiso in permiso_formset %}
+          <div class="formset-row mb-3 campo-moto" data-permiso-index="{{ forloop.counter0 }}">
+            <h5>Permiso #{{ forloop.counter }}</h5>
+
+            <div class="mb-3">
+              <label class="form-label">{{ form_permiso.anio_permiso.label }}</label>
+              {{ form_permiso.anio_permiso }}
+              {% if form_permiso.anio_permiso.errors %}
+                <div class="invalid-feedback d-block">{{ form_permiso.anio_permiso.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ form_permiso.valor_tasacion_SII.label }}</label>
+              {{ form_permiso.valor_tasacion_SII }}
+              {% if form_permiso.valor_tasacion_SII.errors %}
+                <div class="invalid-feedback d-block">{{ form_permiso.valor_tasacion_SII.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ form_permiso.codigo_SII.label }}</label>
+              {{ form_permiso.codigo_SII }}
+              {% if form_permiso.codigo_SII.errors %}
+                <div class="invalid-feedback d-block">{{ form_permiso.codigo_SII.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ form_permiso.tipo_combustible.label }}</label>
+              {{ form_permiso.tipo_combustible }}
+              {% if form_permiso.tipo_combustible.help_text %}
+                <small class="form-text text-muted">{{ form_permiso.tipo_combustible.help_text }}</small>
+              {% endif %}
+              {% if form_permiso.tipo_combustible.errors %}
+                <div class="invalid-feedback d-block">{{ form_permiso.tipo_combustible.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3 tipo-octanaje-field" data-permiso-index="{{ forloop.counter0 }}" style="display: none;">
+              <label class="form-label">{{ form_permiso.tipo_octanaje.label }}</label>
+              {{ form_permiso.tipo_octanaje }}
+              {% if form_permiso.tipo_octanaje.help_text %}
+                <small class="form-text text-muted">{{ form_permiso.tipo_octanaje.help_text }}</small>
+              {% endif %}
+              {% if form_permiso.tipo_octanaje.errors %}
+                <div class="invalid-feedback d-block">{{ form_permiso.tipo_octanaje.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ form_permiso.cilindrada.label }}</label>
+              {{ form_permiso.cilindrada }}
+              {% if form_permiso.cilindrada.errors %}
+                <div class="invalid-feedback d-block">{{ form_permiso.cilindrada.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="row">
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label class="form-label">{{ form_permiso.valor_neto_pago.label }}</label>
+                  {{ form_permiso.valor_neto_pago }}
+                  {% if form_permiso.valor_neto_pago.errors %}
+                    <div class="invalid-feedback d-block">{{ form_permiso.valor_neto_pago.errors }}</div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label class="form-label">{{ form_permiso.valor_multa_pagado.label }}</label>
+                  {{ form_permiso.valor_multa_pagado }}
+                  {% if form_permiso.valor_multa_pagado.errors %}
+                    <div class="invalid-feedback d-block">{{ form_permiso.valor_multa_pagado.errors }}</div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label class="form-label">{{ form_permiso.valor_pagado_total.label }}</label>
+                  {{ form_permiso.valor_pagado_total }}
+                  {% if form_permiso.valor_pagado_total.errors %}
+                    <div class="invalid-feedback d-block">{{ form_permiso.valor_pagado_total.errors }}</div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ form_permiso.fecha_pago.label }}</label>
+              {{ form_permiso.fecha_pago }}
+              {% if form_permiso.fecha_pago.errors %}
+                <div class="invalid-feedback d-block">{{ form_permiso.fecha_pago.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ form_permiso.forma_pago.label }}</label>
+              {{ form_permiso.forma_pago }}
+              {% if form_permiso.forma_pago.errors %}
+                <div class="invalid-feedback d-block">{{ form_permiso.forma_pago.errors }}</div>
+              {% endif %}
+            </div>
+
+            {% if form_permiso.DELETE %}
+              <div class="mb-3">
+                {{ form_permiso.DELETE }}
+                <label class="form-check-label">{{ form_permiso.DELETE.label }}</label>
+              </div>
+            {% endif %}
+
+            {% for hidden in form_permiso.hidden_fields %}
+              {{ hidden }}
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <style>
+      /* Para evitar que los <p> del formset generen espacios exagerados */
+      .formset-row p { margin-bottom: .5rem; }
+    </style>
+    
+    <br><br>
+    {% if mantenimiento_form %}
+    <div id="mantenimiento-container" style="display: none;">
+      <h3>Detalles del Mantenimiento</h3>
+      <div class="mb-3 campo-moto">
+
+        <div class="mb-3 campo-moto">
+          <label class="form-label">{{ mantenimiento_form.fecha_mantenimiento.label }}</label>
+          {{ mantenimiento_form.fecha_mantenimiento }}
+          {% if mantenimiento_form.fecha_mantenimiento.errors %}
+            <div class="invalid-feedback d-block">{{ mantenimiento_form.fecha_mantenimiento.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3 campo-moto">
+          <label class="form-label">{{ mantenimiento_form.tipo_servicio.label }}</label>
+          {{ mantenimiento_form.tipo_servicio }}
+          {% if mantenimiento_form.tipo_servicio.help_text %}
+            <small class="form-text text-muted">{{ mantenimiento_form.tipo_servicio.help_text }}</small>
+          {% endif %}
+          {% if mantenimiento_form.tipo_servicio.errors %}
+            <div class="invalid-feedback d-block">{{ mantenimiento_form.tipo_servicio.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3 campo-moto" id="servicio-preventivo-container" style="display: none;">
+          <label class="form-label">{{ mantenimiento_form.servicio_preventivo.label }}</label>
+          {{ mantenimiento_form.servicio_preventivo }}
+          {% if mantenimiento_form.servicio_preventivo.help_text %}
+            <small class="form-text text-muted">{{ mantenimiento_form.servicio_preventivo.help_text }}</small>
+          {% endif %}
+          {% if mantenimiento_form.servicio_preventivo.errors %}
+            <div class="invalid-feedback d-block">{{ mantenimiento_form.servicio_preventivo.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3 campo-moto">
+          <label class="form-label">{{ mantenimiento_form.descripcion.label }}</label>
+          {{ mantenimiento_form.descripcion }}
+          {% if mantenimiento_form.descripcion.errors %}
+            <div class="invalid-feedback d-block">{{ mantenimiento_form.descripcion.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3 campo-moto">
+          <label class="form-label">{{ mantenimiento_form.kilometraje.label }}</label>
+          {{ mantenimiento_form.kilometraje }}
+          {% if mantenimiento_form.kilometraje.errors %}
+            <div class="invalid-feedback d-block">{{ mantenimiento_form.kilometraje.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3 campo-moto">
+          <label class="form-label">{{ mantenimiento_form.proximo_mantenimiento.label }}</label>
+          {{ mantenimiento_form.proximo_mantenimiento }}
+          {% if mantenimiento_form.proximo_mantenimiento.errors %}
+            <div class="invalid-feedback d-block">{{ mantenimiento_form.proximo_mantenimiento.errors }}</div>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
     {% endif %}
+
     <button class="btn btn-primary" type="submit">Guardar</button>
     <a class="btn btn-secondary" href="{% url 'moto_listar' %}">Cancelar</a>
   </form>
@@ -38,42 +239,80 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  const duenioSelect = document.getElementById('id_duenio');
   const estadoSelect = document.getElementById('id_estado');
+  const mantenimientoContainer = document.getElementById('mantenimiento-container');
+  const motoristaField = document.querySelector('[data-field-name="motorista_asignado"]');
+  
+  // Mantenimiento
+  const tipoServicioSelect = document.getElementById('id_tipo_servicio');
+  const servicioPreventivoContainer = document.getElementById('servicio-preventivo-container');
+  const servicioPreventivoSelect = document.getElementById('id_servicio_preventivo');
 
-  if (!estadoSelect) return;
+  // ========== FUNCIONES PRINCIPALES ==========
+  
+  function toggleMotorista() {
+    if (!motoristaField) return;
+    const duenioValue = duenioSelect.value;
+    const motoristaInput = document.getElementById('id_motorista_asignado');
+    motoristaField.style.display = duenioValue === 'MOTORISTA' ? 'block' : 'none';
+    if (duenioValue !== 'MOTORISTA' && motoristaInput) motoristaInput.value = '';
+  }
 
-  const mantenimientoFields = document.querySelectorAll('.extra-mantenimiento');
+  function toggleMantenimiento() {
+    if (!mantenimientoContainer) return;
+    mantenimientoContainer.style.display = estadoSelect.value === 'EN_MANTENIMIENTO' ? 'block' : 'none';
+  }
 
-  function hideFields(fields) {
-    fields.forEach(f => {
-      const container = f.closest('.mb-3');
-      if (container) container.style.display = 'none';
-      else f.style.display = 'none';
+  function toggleServicioPreventivo() {
+    if (!tipoServicioSelect || !servicioPreventivoContainer) return;
+    const tipo = tipoServicioSelect.value;
+    servicioPreventivoContainer.style.display = tipo === 'PREVENTIVO' ? 'block' : 'none';
+    if (tipo !== 'PREVENTIVO' && servicioPreventivoSelect) servicioPreventivoSelect.value = '';
+  }
+
+  // ========== FUNCIÓN PARA MANEJAR OCTANAJE EN FORMSETS ==========
+  
+  function setupPermisoFormset() {
+    // Buscar todos los selectores de tipo_combustible en el formset
+    const permisoRows = document.querySelectorAll('.formset-row');
+    
+    permisoRows.forEach((row, index) => {
+      const tipoCombustibleSelect = row.querySelector('select[name*="tipo_combustible"]');
+      const tipoOctanajeField = row.querySelector('.tipo-octanaje-field');
+      const tipoOctanajeSelect = row.querySelector('select[name*="tipo_octanaje"]');
+      
+      if (!tipoCombustibleSelect || !tipoOctanajeField) return;
+      
+      function toggleOctanaje() {
+        const tipo = tipoCombustibleSelect.value;
+        tipoOctanajeField.style.display = tipo === 'BENCINA' ? 'block' : 'none';
+        if (tipo !== 'BENCINA' && tipoOctanajeSelect) {
+          tipoOctanajeSelect.value = '';
+        }
+      }
+      
+      // Event listener para este permiso específico
+      tipoCombustibleSelect.addEventListener('change', toggleOctanaje);
+      
+      // Inicializar
+      toggleOctanaje();
     });
   }
 
-  function showFields(fields) {
-    fields.forEach(f => {
-      const container = f.closest('.mb-3');
-      if (container) container.style.display = '';
-      else f.style.display = '';
-    });
-  }
+  // ========== EVENT LISTENERS ==========
+  
+  duenioSelect.addEventListener('change', toggleMotorista);
+  estadoSelect.addEventListener('change', toggleMantenimiento);
+  if (tipoServicioSelect) tipoServicioSelect.addEventListener('change', toggleServicioPreventivo);
 
-  function onEstadoChange() {
-    const val = estadoSelect.value;
-
-    if (val === 'EN_MANTENIMIENTO') {
-      showFields(mantenimientoFields);
-    } else {
-      hideFields(mantenimientoFields);
-    }
-  }
-
-  if (estadoSelect) {
-    estadoSelect.addEventListener('change', onEstadoChange);
-    onEstadoChange();
-  }
+  // ========== INICIALIZACIÓN ==========
+  
+  toggleMotorista();
+  toggleMantenimiento();
+  toggleServicioPreventivo();
+  setupPermisoFormset();
 });
 </script>
+
 {% endblock %}
